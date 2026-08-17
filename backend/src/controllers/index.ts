@@ -1,0 +1,7 @@
+export { authController } from './auth.controller.js'
+export { staffController } from './staff.controller.js'
+export { departmentController } from './department.controller.js'
+export { documentController } from './document.controller.js'
+export { reportController } from './report.controller.js'
+export { settingsController } from './settings.controller.js'
+export { uploadController } from './upload.controller.js'

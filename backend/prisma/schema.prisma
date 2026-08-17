@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMINISTRATOR
+  OFFICER
+}
+
+enum StaffStatus {
+  ACTIVE
+  ON_LEAVE
+  PROBATION
+}
+
+enum DocumentCategory {
+  STAFF_REGISTER
+  IDENTITY
+  SERVICE_HISTORY
+}
+
+enum ServiceHistoryType {
+  PROMOTION
+  POSTING
+  TRANSFER
+  LEAVE
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         UserRole  @default(OFFICER)
+  staffId      String?   @unique
+  staff        Staff?    @relation(fields: [staffId], references: [id])
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([deletedAt])
+}
+
+model Department {
+  id        String       @id @default(uuid())
+  name      String       @unique
+  parentId  String?
+  parent    Department?  @relation("DepartmentTree", fields: [parentId], references: [id])
+  children  Department[] @relation("DepartmentTree")
+  staff     Staff[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Staff {
+  id              String      @id @default(uuid())
+  staffCode       String      @unique @map("staff_id")
+  name            String
+  designation     String
+  departmentId    String
+  department      Department  @relation(fields: [departmentId], references: [id])
+  email           String
+  phone           String
+  gender          String
+  status          StaffStatus @default(ACTIVE)
+  grade           String
+  appointmentDate DateTime
+  location        String
+  nationality     String      @default("Nigerian")
+  dateOfBirth     DateTime?
+  maritalStatus   String      @default("Not specified")
+  nin             String?
+  tin             String?
+  pensionPin      String?
+  bankName        String?
+  accountNumber   String?
+  bvn             String?
+  ippis           String?
+  pfa             String?
+  bloodGroup      String?
+  genotype        String?
+  medicalFitness  String?
+  photo           String?
+  user            User?
+  documents       Document[]
+  serviceHistory  ServiceHistory[]
+  nextOfKin       NextOfKin[]
+  deletedAt       DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([departmentId])
+  @@index([status])
+  @@index([name])
+  @@index([deletedAt])
+}
+
+model Document {
+  id        String           @id @default(uuid())
+  staffId   String?
+  staff     Staff?           @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  category  DocumentCategory
+  title     String
+  fileName  String
+  fileUrl   String
+  mimeType  String
+  deletedAt DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([staffId])
+  @@index([category])
+  @@index([deletedAt])
+}
+
+model ServiceHistory {
+  id            String             @id @default(uuid())
+  staffId       String
+  staff         Staff              @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  type          ServiceHistoryType
+  title         String
+  details       String?
+  effectiveDate DateTime
+  createdAt     DateTime           @default(now())
+
+  @@index([staffId])
+}
+
+model NextOfKin {
+  id           String  @id @default(uuid())
+  staffId      String
+  staff        Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  name         String
+  relationship String
+  phone        String
+  address      String?
+  createdAt    DateTime @default(now())
+
+  @@index([staffId])
+}
+
+model Settings {
+  id                  String   @id @default(uuid())
+  organizationName    String   @default("Planning and Design Directorate")
+  defaultExportFormat String   @default("XLSX")
+  updatedAt           DateTime @updatedAt
+}
