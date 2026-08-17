@@ -1,0 +1,6 @@
+export { userModel } from './user.model.js'
+export { departmentModel } from './department.model.js'
+export { staffModel } from './staff.model.js'
+export { documentModel } from './document.model.js'
+export { serviceHistoryModel } from './service-history.model.js'
+export { settingsModel } from './settings.model.js'
