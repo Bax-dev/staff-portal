@@ -55,7 +55,7 @@ function buildObjectKey(input: PresignUploadInput) {
   const id = randomUUID()
 
   if (input.kind === 'photo') {
-    return input.staffId ? `photos/staff/${input.staffId}/${id}.${ext}` : `photos/staff/${id}.${ext}`
+    return input.staffId ? `photos/staff/${input.staffId}/${id}.${ext}` : `photos/users/${id}.${ext}`
   }
 
   const category = (input.category ?? 'STAFF_REGISTER').toLowerCase()

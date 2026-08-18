@@ -42,6 +42,8 @@ export function toStaffDto(staff: StaffWithDepartment): StaffDto {
     genotype: orPlaceholder(staff.genotype),
     medicalFitness: orPlaceholder(staff.medicalFitness),
     photo: staff.photo ?? undefined,
+    archived: staff.archivedAt != null,
+    archivedAt: staff.archivedAt ? staff.archivedAt.toISOString() : null,
   }
 }
 

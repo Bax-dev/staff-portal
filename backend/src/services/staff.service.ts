@@ -14,7 +14,7 @@ async function resolveDepartment(name: string) {
 }
 
 export const staffService = {
-  async list({ query, department }: StaffListQuery) {
+  async list({ query, department, archived = false }: StaffListQuery) {
     const where: Prisma.StaffWhereInput = {}
 
     if (department && department !== 'All departments') {
@@ -31,10 +31,13 @@ export const staffService = {
       ]
     }
 
-    const records = await staffModel.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-    })
+    const records = await staffModel.findMany(
+      {
+        where,
+        orderBy: archived ? { archivedAt: 'desc' } : { createdAt: 'desc' },
+      },
+      archived,
+    )
 
     return records.map(toStaffDto)
   },
@@ -102,6 +105,30 @@ export const staffService = {
       throw new AppError(404, 'Staff record not found')
     }
     await staffModel.softDelete(id)
+  },
+
+  async archive(id: string) {
+    const current = await staffModel.findById(id)
+    if (!current) {
+      throw new AppError(404, 'Staff record not found')
+    }
+    if (current.archivedAt) {
+      throw new AppError(409, 'This staff record is already archived')
+    }
+    const staff = await staffModel.archive(id)
+    return toStaffDto(staff)
+  },
+
+  async unarchive(id: string) {
+    const current = await staffModel.findById(id)
+    if (!current) {
+      throw new AppError(404, 'Staff record not found')
+    }
+    if (!current.archivedAt) {
+      throw new AppError(409, 'This staff record is not archived')
+    }
+    const staff = await staffModel.unarchive(id)
+    return toStaffDto(staff)
   },
 
   async importMany(rows: CreateStaffInput[]) {

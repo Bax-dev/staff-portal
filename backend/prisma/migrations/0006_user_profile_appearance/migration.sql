@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "photo" TEXT;
+ALTER TABLE "User" ADD COLUMN "theme" TEXT NOT NULL DEFAULT 'light';
+ALTER TABLE "User" ADD COLUMN "font_size" TEXT NOT NULL DEFAULT 'medium';

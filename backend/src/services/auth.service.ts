@@ -1,30 +1,29 @@
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env.js'
 import { userModel } from '../models/user.model.js'
-import type { LoginInput, RequestOtpInput, RequestPasswordResetInput, ResetPasswordInput, VerifyOtpInput } from '../types/auth.js'
+import type { LoginInput, RequestOtpInput, RequestPasswordResetInput, ResetPasswordInput, UpdateProfileInput, ChangePasswordInput, VerifyOtpInput } from '../types/auth.js'
 import { AppError } from '../utils/errors.js'
 import { hashPassword, verifyPassword } from '../utils/password.js'
-import { parseFrontendRole, toAuthUser } from './auth.mapper.js'
+import { toAuthUser } from './auth.mapper.js'
 import { otpService } from './otp.service.js'
 import { passwordResetService } from './password-reset.service.js'
 
-function signSession(userId: string, email: string, role: string, rememberMe?: boolean) {
+function signSession(userId: string, email: string, role: string) {
   return jwt.sign({ sub: userId, email, role }, env.jwtSecret, {
-    expiresIn: rememberMe ? '30d' : '12h',
+    expiresIn: '12h',
   })
 }
 
 export const authService = {
-  async login({ email, password, role, rememberMe }: LoginInput) {
+  async login({ email, password }: LoginInput) {
     const user = await userModel.findByEmail(email)
-    const expectedRole = parseFrontendRole(role)
 
-    if (!user || user.role !== expectedRole || !(await verifyPassword(password, user.passwordHash))) {
-      throw new AppError(401, 'Invalid email, password or role.')
+    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+      throw new AppError(401, 'Invalid email or password.')
     }
 
     return {
-      token: signSession(user.id, user.email, user.role, rememberMe),
+      token: signSession(user.id, user.email, user.role),
       user: toAuthUser(user),
     }
   },
@@ -55,6 +54,44 @@ export const authService = {
     }
 
     await userModel.update(user.id, { passwordHash: await hashPassword(password) })
+  },
+
+  async getMe(userId: string) {
+    const user = await userModel.findById(userId)
+    if (!user) {
+      throw new AppError(401, 'Sign in to continue.')
+    }
+    return toAuthUser(user)
+  },
+
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    const user = await userModel.findById(userId)
+    if (!user) {
+      throw new AppError(401, 'Sign in to continue.')
+    }
+
+    const updated = await userModel.update(user.id, {
+      ...(input.name ? { name: input.name.trim() } : {}),
+      ...(input.photo !== undefined ? { photo: input.photo } : {}),
+      ...(input.theme ? { theme: input.theme } : {}),
+      ...(input.fontSize ? { fontSize: input.fontSize } : {}),
+    })
+
+    return toAuthUser(updated)
+  },
+
+  async changePassword(userId: string, { currentPassword, newPassword }: ChangePasswordInput) {
+    const user = await userModel.findById(userId)
+    if (!user) {
+      throw new AppError(401, 'Sign in to continue.')
+    }
+
+    if (!(await verifyPassword(currentPassword, user.passwordHash))) {
+      throw new AppError(400, 'Current password is incorrect.')
+    }
+
+    await userModel.update(user.id, { passwordHash: await hashPassword(newPassword) })
+    return { updated: true }
   },
 
   async requestOtp({ email }: RequestOtpInput) {

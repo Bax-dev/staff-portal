@@ -158,6 +158,19 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html[data-font-size='small'] {
+    font-size: 15px;
+  }
+  html,
+  html[data-font-size='medium'] {
+    font-size: 17px;
+  }
+  html[data-font-size='large'] {
+    font-size: 19px;
+  }
+  html[data-font-size='xlarge'] {
+    font-size: 21px;
+  }
   body {
     @apply bg-background text-foreground;
   }

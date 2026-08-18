@@ -1,10 +1,29 @@
 import type { Request, Response } from 'express'
 import { authService } from '../services/auth.service.js'
-import type { LoginInput, RequestOtpInput, RequestPasswordResetInput, ResetPasswordInput, VerifyOtpInput } from '../types/auth.js'
+import type { ChangePasswordInput, LoginInput, RequestOtpInput, RequestPasswordResetInput, ResetPasswordInput, UpdateProfileInput, VerifyOtpInput } from '../types/auth.js'
+import { requireActor } from '../utils/require-actor.js'
 
 export const authController = {
   async login(req: Request, res: Response) {
     const result = await authService.login(req.body as LoginInput)
+    res.status(200).json({ data: result })
+  },
+
+  async me(req: Request, res: Response) {
+    const actor = requireActor(req)
+    const user = await authService.getMe(actor.id)
+    res.status(200).json({ data: user })
+  },
+
+  async updateProfile(req: Request, res: Response) {
+    const actor = requireActor(req)
+    const user = await authService.updateProfile(actor.id, req.body as UpdateProfileInput)
+    res.status(200).json({ data: user })
+  },
+
+  async changePassword(req: Request, res: Response) {
+    const actor = requireActor(req)
+    const result = await authService.changePassword(actor.id, req.body as ChangePasswordInput)
     res.status(200).json({ data: result })
   },
 

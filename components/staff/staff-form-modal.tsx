@@ -3,53 +3,94 @@
 import { useRef, useState } from 'react'
 import { Camera, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DateInput } from '@/components/ui/date-input'
+import { FieldLabel } from '@/components/ui/field-label'
+import { StateSelect } from '@/components/ui/state-select'
 import { StaffAvatar } from '@/components/staff/staff-avatar'
-import { orgUnits, type Staff } from '@/lib/staff-data'
-import type { StaffFormValues } from '@/lib/staff-context'
+import { todayInputValue } from '@/lib/dates'
+import { type Staff, type StaffFormValues } from '@/lib/staff-data'
+import { useStaff } from '@/lib/staff-context'
 
 const statuses: Staff['status'][] = ['Active', 'On leave', 'Probation']
 const genders = ['Female', 'Male', 'Not specified']
 const maritalStatuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Not specified']
 
-export function StaffFormModal({ staff, onClose, onSubmit }: { staff: Staff | null; onClose: () => void; onSubmit: (values: StaffFormValues) => void }) {
+function field(form: FormData, name: string) {
+  return String(form.get(name) ?? '')
+}
+
+export function StaffFormModal({
+  staff,
+  onClose,
+  onSubmit,
+}: {
+  staff: Staff | null
+  onClose: () => void
+  onSubmit: (values: StaffFormValues, photoFile?: File) => Promise<void>
+}) {
+  const { departments } = useStaff()
   const isEditing = staff !== null
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [photo, setPhoto] = useState(staff?.photo)
+  const [photoFile, setPhotoFile] = useState<File | undefined>(undefined)
+  const [photoPreview, setPhotoPreview] = useState(staff?.photo)
   const [name, setName] = useState(staff?.name ?? '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   function handlePhotoChange(file: File | undefined) {
     if (!file) return
+    setPhotoFile(file)
     const reader = new FileReader()
-    reader.onload = (event) => setPhoto(typeof event.target?.result === 'string' ? event.target.result : undefined)
+    reader.onload = (event) => setPhotoPreview(typeof event.target?.result === 'string' ? event.target.result : undefined)
     reader.readAsDataURL(file)
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
     const values: StaffFormValues = {
-      name: String(form.get('name')),
-      staffId: String(form.get('staffId')),
-      designation: String(form.get('designation')),
-      department: String(form.get('department')),
-      status: String(form.get('status')) as Staff['status'],
-      email: String(form.get('email')),
-      phone: String(form.get('phone')),
-      gender: String(form.get('gender')),
-      grade: String(form.get('grade')),
-      appointmentDate: String(form.get('appointmentDate')),
-      location: String(form.get('location')),
-      nationality: String(form.get('nationality')),
-      dob: String(form.get('dob')),
-      maritalStatus: String(form.get('maritalStatus')),
+      name: field(form, 'name'),
+      staffId: field(form, 'staffId'),
+      designation: field(form, 'designation'),
+      department: field(form, 'department'),
+      status: field(form, 'status') as Staff['status'],
+      email: field(form, 'email'),
+      phone: field(form, 'phone'),
+      gender: field(form, 'gender'),
+      grade: field(form, 'grade'),
+      appointmentDate: field(form, 'appointmentDate'),
+      location: field(form, 'location'),
+      nationality: field(form, 'nationality'),
+      dob: field(form, 'dob'),
+      maritalStatus: field(form, 'maritalStatus'),
       photo,
+      nin: field(form, 'nin'),
+      tin: field(form, 'tin'),
+      pensionPin: field(form, 'pensionPin'),
+      bankName: field(form, 'bankName'),
+      accountNumber: field(form, 'accountNumber'),
+      bvn: field(form, 'bvn'),
+      ippis: field(form, 'ippis'),
+      pfa: field(form, 'pfa'),
+      bloodGroup: field(form, 'bloodGroup'),
+      genotype: field(form, 'genotype'),
+      medicalFitness: field(form, 'medicalFitness'),
     }
-    onSubmit(values)
+    setError(null)
+    setIsSubmitting(true)
+    try {
+      await onSubmit(values, photoFile)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save this staff record.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border bg-card shadow-xl">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto overflow-x-hidden rounded-xl border bg-card shadow-xl">
         <div className="flex items-start justify-between border-b p-5">
           <div>
             <h2 className="text-xl font-semibold">{isEditing ? 'Edit staff member' : 'Add staff member'}</h2>
@@ -59,116 +100,136 @@ export function StaffFormModal({ staff, onClose, onSubmit }: { staff: Staff | nu
             <X className="size-5 text-muted-foreground" />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="grid gap-4 p-5 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
           <div className="flex items-center gap-4 sm:col-span-2">
             <div className="relative">
-              <StaffAvatar name={name || 'New staff'} photo={photo} className="size-16 text-lg" />
-              <button
-                type="button"
-                aria-label="Upload profile photo"
-                onClick={() => photoInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border-2 border-card bg-primary text-primary-foreground"
-              >
+              <StaffAvatar name={name || 'New staff'} photo={photoPreview} className="size-16 text-lg" />
+              <button type="button" aria-label="Upload profile photo" onClick={() => photoInputRef.current?.click()} className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border-2 border-card bg-primary text-primary-foreground">
                 <Camera className="size-3.5" />
               </button>
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => handlePhotoChange(event.target.files?.[0])}
-              />
+              <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => handlePhotoChange(event.target.files?.[0])} />
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium">Profile photo</p>
-              {photo ? (
-                <button type="button" onClick={() => setPhoto(undefined)} className="w-fit text-xs font-semibold text-destructive">
+              {photoPreview ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhoto(undefined)
+                    setPhotoFile(undefined)
+                    setPhotoPreview(undefined)
+                  }}
+                  className="w-fit text-xs font-semibold text-destructive"
+                >
                   Remove photo
                 </button>
               ) : (
-                <p className="text-xs text-muted-foreground">JPG or PNG, shown across the directory.</p>
+                <p className="text-xs text-muted-foreground">JPG or PNG, stored in S3.</p>
               )}
             </div>
           </div>
 
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Full name
-            <input required name="name" value={name} onChange={(event) => setName(event.target.value)} className="h-10 rounded-lg border bg-background px-3 font-normal" />
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+            <FieldLabel required>Full name</FieldLabel>
+            <input required name="name" value={name} onChange={(event) => setName(event.target.value)} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Staff ID
-            <input required name="staffId" defaultValue={staff?.staffId} className="h-10 rounded-lg border bg-background px-3 font-normal" />
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+            <FieldLabel required>Staff ID</FieldLabel>
+            <input required name="staffId" defaultValue={staff?.staffId} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Designation
-            <input required name="designation" defaultValue={staff?.designation} className="h-10 rounded-lg border bg-background px-3 font-normal" />
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+            <FieldLabel required>Designation</FieldLabel>
+            <input required name="designation" defaultValue={staff?.designation} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Department
-            <select name="department" defaultValue={staff?.department ?? 'Planning and Design'} className="h-10 rounded-lg border bg-background px-3 font-normal">
-              <option>Planning and Design</option>
-              {orgUnits.flatMap((unit) => [unit.name, ...unit.children]).map((unit) => (
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+            <FieldLabel required>Department</FieldLabel>
+            <select required name="department" defaultValue={staff?.department ?? departments[0]} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal">
+              {departments.map((unit) => (
                 <option key={unit}>{unit}</option>
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Status
-            <select name="status" defaultValue={staff?.status ?? 'Active'} className="h-10 rounded-lg border bg-background px-3 font-normal">
+            <select name="status" defaultValue={staff?.status ?? 'Active'} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal">
               {statuses.map((status) => (
                 <option key={status}>{status}</option>
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Grade level / step
-            <input name="grade" defaultValue={staff?.grade} placeholder="GL 12 / Step 4" className="h-10 rounded-lg border bg-background px-3 font-normal" />
+            <input name="grade" defaultValue={staff?.grade} placeholder="GL 12 / Step 4" className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Email
-            <input type="email" name="email" defaultValue={staff?.email} className="h-10 rounded-lg border bg-background px-3 font-normal" />
+            <input type="email" name="email" defaultValue={staff?.email} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Phone
-            <input name="phone" defaultValue={staff?.phone} className="h-10 rounded-lg border bg-background px-3 font-normal" />
+            <input name="phone" defaultValue={staff?.phone} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Gender
-            <select name="gender" defaultValue={staff?.gender ?? 'Not specified'} className="h-10 rounded-lg border bg-background px-3 font-normal">
+            <select name="gender" defaultValue={staff?.gender ?? 'Not specified'} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal">
               {genders.map((gender) => (
                 <option key={gender}>{gender}</option>
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Marital status
-            <select name="maritalStatus" defaultValue={staff?.maritalStatus ?? 'Not specified'} className="h-10 rounded-lg border bg-background px-3 font-normal">
+            <select name="maritalStatus" defaultValue={staff?.maritalStatus ?? 'Not specified'} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal">
               {maritalStatuses.map((status) => (
                 <option key={status}>{status}</option>
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Nationality
-            <input name="nationality" defaultValue={staff?.nationality ?? 'Nigerian'} className="h-10 rounded-lg border bg-background px-3 font-normal" />
+            <input name="nationality" defaultValue={staff?.nationality ?? 'Nigerian'} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Date of birth
-            <input name="dob" defaultValue={staff?.dob} placeholder="22 Jun 1990" className="h-10 rounded-lg border bg-background px-3 font-normal" />
+            <DateInput name="dob" defaultValue={staff?.dob} max={todayInputValue()} />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Appointment date
-            <input name="appointmentDate" defaultValue={staff?.appointmentDate} placeholder="01 Jan 2026" className="h-10 rounded-lg border bg-background px-3 font-normal" />
+            <DateInput name="appointmentDate" defaultValue={staff?.appointmentDate} max={todayInputValue()} />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Location
-            <input name="location" defaultValue={staff?.location} placeholder="Abuja" className="h-10 rounded-lg border bg-background px-3 font-normal" />
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+            State
+            <StateSelect name="location" defaultValue={staff?.location} />
           </label>
+
+          <p className="sm:col-span-2 pt-2 text-sm font-semibold">Identity, payroll and medical</p>
+          {[
+            ['nin', 'NIN', staff?.nin],
+            ['tin', 'TIN', staff?.tin],
+            ['pensionPin', 'Pension PIN', staff?.pensionPin],
+            ['bankName', 'Bank name', staff?.bankName],
+            ['accountNumber', 'Account number', staff?.accountNumber],
+            ['bvn', 'BVN', staff?.bvn],
+            ['ippis', 'IPPIS', staff?.ippis],
+            ['pfa', 'PFA', staff?.pfa],
+            ['bloodGroup', 'Blood group', staff?.bloodGroup],
+            ['genotype', 'Genotype', staff?.genotype],
+            ['medicalFitness', 'Medical fitness', staff?.medicalFitness],
+          ].map(([name, label, value]) => (
+            <label key={name} className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+              {label}
+              <input name={name} defaultValue={value === 'Not provided' ? '' : value} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
+            </label>
+          ))}
+
+          {error && <p className="sm:col-span-2 text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2 sm:col-span-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">{isEditing ? 'Save changes' : 'Create staff record'}</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving…' : isEditing ? 'Save changes' : 'Create staff record'}
+            </Button>
           </div>
         </form>
       </div>

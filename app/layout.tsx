@@ -2,28 +2,13 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
+import { AppearanceProvider } from '@/lib/appearance-context'
+import { Toaster } from '@/components/ui/toast'
 
 export const metadata: Metadata = {
-  title: 'Organo Staff Administration',
-  description: 'Professional staff records and workforce administration for the Planning and Design directorate.',
-  generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
+  title: 'SMP | Staff Management Portal',
+  description: 'Professional staff records and workforce administration.',
+  icons: { icon: '/icon.svg' },
 }
 
 export const viewport: Viewport = {
@@ -34,15 +19,24 @@ export const viewport: Viewport = {
   ],
 }
 
+const appearanceScript = `(function(){try{var t=localStorage.getItem('smp-theme');var f=localStorage.getItem('smp-font-size');var r=document.documentElement;r.classList.remove('light','dark');r.classList.add(t==='dark'?'dark':'light');if(f==='small'||f==='medium'||f==='large'||f==='xlarge'){r.setAttribute('data-font-size',f)}else{r.setAttribute('data-font-size','medium')}}catch(e){}})();`
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="light">
-      <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="en" className="light" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
+      </head>
+      <body className="antialiased" suppressHydrationWarning>
+        <AuthProvider>
+          <AppearanceProvider>
+            <Toaster>{children}</Toaster>
+          </AppearanceProvider>
+        </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

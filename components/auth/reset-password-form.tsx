@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { CircleCheck, Eye, EyeOff, Loader2, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AuthCard } from '@/components/auth/auth-card'
-import { mockResetPassword } from '@/lib/auth'
+import { FieldLabel } from '@/components/ui/field-label'
+import { authApi } from '@/lib/api'
 
 export function ResetPasswordForm() {
-  const router = useRouter()
   const token = useSearchParams().get('token')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -59,7 +59,7 @@ export function ResetPasswordForm() {
     }
     setIsSubmitting(true)
     try {
-      await mockResetPassword({ token, password })
+      await authApi.resetPassword(token ?? '', password)
       setDone(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -78,7 +78,7 @@ export function ResetPasswordForm() {
       )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-2 text-sm font-medium">
-          New password
+          <FieldLabel required>New password</FieldLabel>
           <div className="relative">
             <input
               required
@@ -100,7 +100,7 @@ export function ResetPasswordForm() {
           </div>
         </label>
         <label className="flex flex-col gap-2 text-sm font-medium">
-          Confirm new password
+          <FieldLabel required>Confirm new password</FieldLabel>
           <input
             required
             type={showPassword ? 'text' : 'password'}

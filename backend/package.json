@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "migrate:db": "bash scripts/migrate-db.sh",
     "prisma:seed": "tsx prisma/seed.ts"
   },
   "prisma": {

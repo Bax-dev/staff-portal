@@ -12,7 +12,18 @@ export function validate(schema: ZodType, part: RequestPart = 'body') {
       return
     }
 
-    req[part] = result.data as typeof req[typeof part]
+    if (part === 'body') {
+      req.body = result.data
+      next()
+      return
+    }
+
+    Object.defineProperty(req, part, {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: result.data,
+    })
     next()
   }
 }

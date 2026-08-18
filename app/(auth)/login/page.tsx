@@ -7,7 +7,8 @@ import { Eye, EyeOff, Loader2, ShieldCheck, TriangleAlert, Users } from 'lucide-
 import { Button } from '@/components/ui/button'
 import { AuthCard } from '@/components/auth/auth-card'
 import { GuestGate } from '@/components/auth/guest-gate'
-import { mockLogin, type Role } from '@/lib/auth'
+import { FieldLabel } from '@/components/ui/field-label'
+import type { Role } from '@/lib/auth'
 import { useAuth } from '@/lib/auth-context'
 
 const roles: { value: Role; label: string; icon: typeof Users }[] = [
@@ -38,8 +39,7 @@ function LoginForm() {
     setError(null)
     setIsSubmitting(true)
     try {
-      await mockLogin({ email, password, role })
-      login(role)
+      await login({ email, password, role })
       router.push('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -76,19 +76,19 @@ function LoginForm() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-2 text-sm font-medium">
-          Work email
+          <FieldLabel required>Work email</FieldLabel>
           <input
             required
             type="email"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder={role === 'admin' ? 'admin@organo.gov.ng' : 'staff@organo.gov.ng'}
+            placeholder={role === 'admin' ? 'admin@smp.gov.ng' : 'staff@smp.gov.ng'}
             className="h-10 rounded-lg border bg-background px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-primary"
           />
         </label>
         <label className="flex flex-col gap-2 text-sm font-medium">
-          Password
+          <FieldLabel required>Password</FieldLabel>
           <div className="relative">
             <input
               required
@@ -109,11 +109,7 @@ function LoginForm() {
             </button>
           </div>
         </label>
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 font-normal text-muted-foreground">
-            <input type="checkbox" name="remember" className="size-4 rounded border-input" />
-            Remember me
-          </label>
+        <div className="flex items-center justify-end text-sm">
           <Link href="/forgot-password" className="font-medium text-primary">
             Forgot password?
           </Link>
@@ -124,7 +120,7 @@ function LoginForm() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">Demo mode — any email and a password of 6+ characters will sign you in.</p>
+      <p className="mt-6 text-center text-xs text-muted-foreground">Use your work email and password to sign in.</p>
     </AuthCard>
   )
 }

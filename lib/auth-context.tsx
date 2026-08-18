@@ -1,40 +1,68 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
+import { authApi } from '@/lib/api'
+import { clearAuth, getStoredAuthUser, getStoredToken, persistAuth } from '@/lib/api/client'
+import type { AuthUser } from '@/lib/api/types'
+import { applyAppearance } from '@/lib/appearance'
 import type { Role } from '@/lib/auth'
 
-const STORAGE_KEY = 'organo-auth-role'
-
 type AuthContextValue = {
+  user: AuthUser | null
   role: Role | null
   isLoading: boolean
-  login: (role: Role) => void
+  login: (input: { email: string; password: string; role: Role }) => Promise<void>
   logout: () => void
+  updateUser: (user: AuthUser) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<Role | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const stored = sessionStorage.getItem(STORAGE_KEY)
-    if (stored === 'staff' || stored === 'admin') setRole(stored)
+    const stored = getStoredAuthUser()
+    setUser(stored)
     setIsLoading(false)
+    if (stored?.theme || stored?.fontSize) {
+      applyAppearance(stored.theme === 'dark' ? 'dark' : 'light', stored.fontSize ?? 'medium')
+    }
+    if (!stored) return
+    authApi.me()
+      .then((fresh) => {
+        const token = getStoredToken()
+        if (token) persistAuth(token, fresh)
+        setUser(fresh)
+        applyAppearance(fresh.theme === 'dark' ? 'dark' : 'light', fresh.fontSize ?? 'medium')
+      })
+      .catch(() => undefined)
   }, [])
 
-  function login(nextRole: Role) {
-    sessionStorage.setItem(STORAGE_KEY, nextRole)
-    setRole(nextRole)
+  async function login(input: { email: string; password: string; role: Role }) {
+    const session = await authApi.login(input)
+    persistAuth(session.token, session.user)
+    setUser(session.user)
+    applyAppearance(session.user.theme === 'dark' ? 'dark' : 'light', session.user.fontSize ?? 'medium')
   }
 
   function logout() {
-    sessionStorage.removeItem(STORAGE_KEY)
-    setRole(null)
+    clearAuth()
+    setUser(null)
   }
 
-  return <AuthContext.Provider value={{ role, isLoading, login, logout }}>{children}</AuthContext.Provider>
+  function updateUser(next: AuthUser) {
+    const token = getStoredToken()
+    if (token) persistAuth(token, next)
+    setUser(next)
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, role: user?.role ?? null, isLoading, login, logout, updateUser }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {

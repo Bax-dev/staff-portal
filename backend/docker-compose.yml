@@ -3,8 +3,8 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: organo
-      POSTGRES_PASSWORD: organo
+      POSTGRES_USER: smp
+      POSTGRES_PASSWORD: smp
       POSTGRES_DB: staff_portal
     ports:
       - "5432:5432"

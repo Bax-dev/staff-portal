@@ -6,7 +6,6 @@ export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   role: frontendRole,
-  rememberMe: z.boolean().optional(),
 })
 
 export const requestOtpSchema = z.object({
@@ -25,4 +24,16 @@ export const requestPasswordResetSchema = z.object({
 export const resetPasswordSchema = z.object({
   token: z.string().min(1),
   password: z.string().min(8),
+})
+
+export const updateProfileSchema = z.object({
+  name: z.string().min(1).optional(),
+  photo: z.string().min(1).nullable().optional(),
+  theme: z.enum(['light', 'dark']).optional(),
+  fontSize: z.enum(['small', 'medium', 'large', 'xlarge']).optional(),
+})
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
 })

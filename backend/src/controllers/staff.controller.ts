@@ -28,6 +28,16 @@ export const staffController = {
     res.status(204).send()
   },
 
+  async archive(req: Request, res: Response) {
+    const staff = await staffService.archive(String(req.params.id))
+    res.status(200).json({ data: staff })
+  },
+
+  async unarchive(req: Request, res: Response) {
+    const staff = await staffService.unarchive(String(req.params.id))
+    res.status(200).json({ data: staff })
+  },
+
   async importMany(req: Request, res: Response) {
     const body = req.body as { rows: CreateStaffInput[] }
     const staff = await staffService.importMany(body.rows)

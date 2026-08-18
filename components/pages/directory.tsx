@@ -1,13 +1,12 @@
 'use client'
 
-import { ArrowDownToLine, ArrowUpFromLine, Pencil, Plus, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
+import { Archive, ArrowDownToLine, ArrowUpFromLine, Eye, Pencil, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StaffAvatar } from '@/components/staff/staff-avatar'
-import { allDepartments } from '@/lib/staff-data'
 import { useStaff } from '@/lib/staff-context'
 
 export function Directory() {
-  const { staff, filteredStaff, query, setQuery, department, setDepartment, selectStaff, openCreateForm, openEditForm, requestDelete, triggerImport, exportCsv, exportXlsx } = useStaff()
+  const { staff, filteredStaff, query, setQuery, department, setDepartment, departments, selectStaff, openCreateForm, openEditForm, requestArchive, triggerImport, exportCsv, exportXlsx, isLoading, error } = useStaff()
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,7 +18,7 @@ export function Directory() {
           <h2 className="text-3xl font-semibold tracking-tight">Staff directory</h2>
           <p className="mt-2 text-sm text-muted-foreground">Search, filter, import and download staff records.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div data-tour="directory-actions" className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={triggerImport}>
             <ArrowUpFromLine data-icon="inline-start" />
             Import
@@ -38,7 +37,7 @@ export function Directory() {
           </Button>
         </div>
       </div>
-      <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 md:flex-row">
+      <div data-tour="directory-search" className="flex flex-col gap-3 rounded-xl border bg-card p-4 md:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -58,7 +57,7 @@ export function Directory() {
             className="h-10 w-full appearance-none rounded-lg border bg-background pl-9 pr-8 text-sm outline-none focus:ring-2 focus:ring-primary"
           >
             <option>All departments</option>
-            {allDepartments().map((value) => (
+            {departments.map((value) => (
               <option key={value}>{value}</option>
             ))}
           </select>
@@ -99,11 +98,14 @@ export function Directory() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
+                      <button aria-label={`View ${person.name}`} onClick={() => selectStaff(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
+                        <Eye className="size-4" />
+                      </button>
                       <button aria-label={`Edit ${person.name}`} onClick={() => openEditForm(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
                         <Pencil className="size-4" />
                       </button>
-                      <button aria-label={`Remove ${person.name}`} onClick={() => requestDelete(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                        <Trash2 className="size-4" />
+                      <button aria-label={`Archive ${person.name}`} onClick={() => requestArchive(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
+                        <Archive className="size-4" />
                       </button>
                     </div>
                   </td>
@@ -112,7 +114,11 @@ export function Directory() {
             </tbody>
           </table>
         </div>
-        {filteredStaff.length === 0 && <div className="p-10 text-center text-sm text-muted-foreground">No staff records match your search.</div>}
+        {filteredStaff.length === 0 && (
+          <div className="p-10 text-center text-sm text-muted-foreground">
+            {isLoading ? 'Loading staff records…' : error ?? 'No staff records match your search.'}
+          </div>
+        )}
       </div>
     </div>
   )

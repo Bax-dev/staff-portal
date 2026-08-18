@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { useStaff } from '@/lib/staff-context'
 
 export function Reports() {
-  const { staff, exportXlsx } = useStaff()
+  const { staff, exportXlsx, isLoading, error } = useStaff()
   const byDepartment = staff.reduce<Record<string, number>>((result, person) => {
-    result[person.department] = (result[person.department] || 0) + 1
+    result[person.department] = (result[person.department] ?? 0) + 1
     return result
   }, {})
+  const total = staff.length
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,16 +25,17 @@ export function Reports() {
           Download XLSX
         </Button>
       </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[
-          ['Active', staff.filter((p) => p.status === 'Active').length],
-          ['Female', staff.filter((p) => p.gender === 'Female').length],
-          ['Male', staff.filter((p) => p.gender === 'Male').length],
-          ['On leave', staff.filter((p) => p.status === 'On leave').length],
+          ['Active', staff.filter((person) => person.status === 'Active').length],
+          ['Female', staff.filter((person) => person.gender === 'Female').length],
+          ['Male', staff.filter((person) => person.gender === 'Male').length],
+          ['On leave', staff.filter((person) => person.status === 'On leave').length],
         ].map(([label, value]) => (
           <div key={String(label)} className="rounded-xl border bg-card p-5">
             <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="mt-4 text-3xl font-semibold">{value}</p>
+            <p className="mt-4 text-3xl font-semibold">{isLoading ? '…' : value}</p>
           </div>
         ))}
       </div>
@@ -47,10 +49,11 @@ export function Reports() {
                 <span className="text-muted-foreground">{count}</span>
               </div>
               <div className="h-2 rounded-full bg-muted">
-                <div className="h-2 rounded-full bg-primary" style={{ width: `${Math.max(12, (count / staff.length) * 100)}%` }} />
+                <div className="h-2 rounded-full bg-primary" style={{ width: `${Math.max(12, total ? (count / total) * 100 : 0)}%` }} />
               </div>
             </div>
           ))}
+          {!isLoading && Object.keys(byDepartment).length === 0 && <p className="text-sm text-muted-foreground">No department data yet.</p>}
         </div>
       </div>
     </div>

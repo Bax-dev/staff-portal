@@ -6,7 +6,8 @@ import { ArrowLeft, Loader2, MailCheck, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AuthCard } from '@/components/auth/auth-card'
 import { GuestGate } from '@/components/auth/guest-gate'
-import { mockRequestPasswordReset } from '@/lib/auth'
+import { FieldLabel } from '@/components/ui/field-label'
+import { authApi } from '@/lib/api'
 
 export default function ForgotPasswordPage() {
   return (
@@ -27,7 +28,7 @@ function ForgotPasswordForm() {
     setError(null)
     setIsSubmitting(true)
     try {
-      await mockRequestPasswordReset({ email })
+      await authApi.forgotPassword(email)
       setSent(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -68,14 +69,14 @@ function ForgotPasswordForm() {
       )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-2 text-sm font-medium">
-          Work email
+          <FieldLabel required>Work email</FieldLabel>
           <input
             required
             type="email"
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@organo.gov.ng"
+            placeholder="you@smp.gov.ng"
             className="h-10 rounded-lg border bg-background px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-primary"
           />
         </label>

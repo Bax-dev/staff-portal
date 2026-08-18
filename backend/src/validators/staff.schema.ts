@@ -2,38 +2,60 @@ import { z } from 'zod'
 
 const staffStatus = z.enum(['Active', 'On leave', 'Probation'])
 
+function toText(value: unknown) {
+  if (value == null) return value
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  if (typeof value === 'boolean') return String(value)
+  if (typeof value === 'string') return value.trim()
+  return value
+}
+
+const requiredText = z.preprocess(toText, z.string().min(1))
+const optionalText = z.preprocess((value) => {
+  const text = toText(value)
+  return text === '' ? undefined : text
+}, z.string().optional())
+const optionalEmail = z.preprocess((value) => {
+  const text = toText(value)
+  return text === '' ? '' : text
+}, z.union([z.string().email(), z.literal('')]).optional())
+
 export const staffListQuerySchema = z.object({
   query: z.string().optional(),
   department: z.string().optional(),
+  archived: z
+    .enum(['true', 'false', '1', '0'])
+    .optional()
+    .transform((value) => (value == null ? undefined : value === 'true' || value === '1')),
 })
 
 export const createStaffSchema = z.object({
-  name: z.string().min(1),
-  staffId: z.string().min(1),
-  designation: z.string().min(1),
-  department: z.string().min(1),
-  email: z.string().email().optional().or(z.literal('')),
-  phone: z.string().optional(),
-  gender: z.string().optional(),
+  name: requiredText,
+  staffId: requiredText,
+  designation: requiredText,
+  department: requiredText,
+  email: optionalEmail,
+  phone: optionalText,
+  gender: optionalText,
   status: staffStatus.optional(),
-  grade: z.string().optional(),
-  appointmentDate: z.string().optional(),
-  location: z.string().optional(),
-  nationality: z.string().optional(),
-  dob: z.string().optional(),
-  maritalStatus: z.string().optional(),
-  nin: z.string().optional(),
-  tin: z.string().optional(),
-  pensionPin: z.string().optional(),
-  bankName: z.string().optional(),
-  accountNumber: z.string().optional(),
-  bvn: z.string().optional(),
-  ippis: z.string().optional(),
-  pfa: z.string().optional(),
-  bloodGroup: z.string().optional(),
-  genotype: z.string().optional(),
-  medicalFitness: z.string().optional(),
-  photo: z.string().optional(),
+  grade: optionalText,
+  appointmentDate: optionalText,
+  location: optionalText,
+  nationality: optionalText,
+  dob: optionalText,
+  maritalStatus: optionalText,
+  nin: optionalText,
+  tin: optionalText,
+  pensionPin: optionalText,
+  bankName: optionalText,
+  accountNumber: optionalText,
+  bvn: optionalText,
+  ippis: optionalText,
+  pfa: optionalText,
+  bloodGroup: optionalText,
+  genotype: optionalText,
+  medicalFitness: optionalText,
+  photo: optionalText,
 })
 
 export const updateStaffSchema = createStaffSchema.partial()

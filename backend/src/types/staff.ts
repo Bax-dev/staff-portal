@@ -11,6 +11,7 @@ export type StaffStatusLabel = (typeof staffStatusLabels)[StaffStatus]
 export type StaffListQuery = {
   query?: string
   department?: string
+  archived?: boolean
 }
 
 export type CreateStaffInput = {
@@ -72,4 +73,6 @@ export type StaffDto = {
   genotype: string
   medicalFitness: string
   photo?: string
+  archived: boolean
+  archivedAt: string | null
 }

@@ -19,7 +19,15 @@ export function toAuthUser(user: User): AuthUser {
     name: user.name,
     role: frontendRoleByUser[user.role],
     staffId: user.staffId,
+    photo: user.photo,
+    theme: user.theme === 'dark' ? 'dark' : 'light',
+    fontSize: parseFontSize(user.fontSize),
   }
+}
+
+function parseFontSize(value: string): AuthUser['fontSize'] {
+  if (value === 'small' || value === 'large' || value === 'xlarge') return value
+  return 'medium'
 }
 
 export function parseFrontendRole(role: FrontendRole) {

@@ -9,7 +9,7 @@ function required(name: string, fallback?: string) {
 export const env = {
   port: Number(process.env.PORT ?? 4000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  databaseUrl: required('DATABASE_URL', 'postgresql://organo:organo@localhost:5432/staff_portal?schema=public'),
+  databaseUrl: required('DATABASE_URL', 'postgresql://smp:smp@localhost:5432/staff_portal?schema=public'),
   redisUrl: required('REDIS_URL', 'redis://localhost:6379'),
   jwtSecret: required('JWT_SECRET', 'dev-only-change-me'),
   otpPepper: required('OTP_PEPPER', 'dev-only-otp-pepper'),

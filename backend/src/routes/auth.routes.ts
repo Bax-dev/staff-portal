@@ -3,16 +3,21 @@ import { authController } from '../controllers/auth.controller.js'
 import { validate } from '../middleware/validate.js'
 import { asyncHandler } from '../utils/async-handler.js'
 import {
+  changePasswordSchema,
   loginSchema,
   requestOtpSchema,
   requestPasswordResetSchema,
   resetPasswordSchema,
+  updateProfileSchema,
   verifyOtpSchema,
 } from '../validators/auth.schema.js'
 
 export const authRoutes = Router()
 
 authRoutes.post('/login', validate(loginSchema), asyncHandler(authController.login))
+authRoutes.get('/me', asyncHandler(authController.me))
+authRoutes.patch('/me', validate(updateProfileSchema), asyncHandler(authController.updateProfile))
+authRoutes.post('/change-password', validate(changePasswordSchema), asyncHandler(authController.changePassword))
 authRoutes.post('/forgot-password', validate(requestPasswordResetSchema), asyncHandler(authController.requestPasswordReset))
 authRoutes.post('/reset-password', validate(resetPasswordSchema), asyncHandler(authController.resetPassword))
 authRoutes.post('/otp/request', validate(requestOtpSchema), asyncHandler(authController.requestOtp))

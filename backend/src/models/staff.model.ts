@@ -7,19 +7,24 @@ const staffInclude = {
   documents: {
     where: { deletedAt: null },
   },
-  serviceHistory: true,
-  nextOfKin: true,
+  serviceHistory: {
+    where: { deletedAt: null },
+  },
+  nextOfKin: {
+    where: { deletedAt: null },
+  },
 } satisfies Prisma.StaffInclude
 
 const notDeleted = { deletedAt: null } as const
 
 export const staffModel = {
-  findMany(args: Prisma.StaffFindManyArgs) {
+  findMany(args: Prisma.StaffFindManyArgs, archived = false) {
     return prisma.staff.findMany({
       ...args,
       where: {
         ...args.where,
         ...notDeleted,
+        archivedAt: archived ? { not: null } : null,
       },
       include: {
         ...staffInclude,
@@ -87,6 +92,36 @@ export const staffModel = {
         data: { deletedAt },
       })
 
+      await tx.education.updateMany({
+        where: { staffId: id, ...notDeleted },
+        data: { deletedAt },
+      })
+
+      await tx.certification.updateMany({
+        where: { staffId: id, ...notDeleted },
+        data: { deletedAt },
+      })
+
+      await tx.familyMember.updateMany({
+        where: { staffId: id, ...notDeleted },
+        data: { deletedAt },
+      })
+
+      await tx.emergencyContact.updateMany({
+        where: { staffId: id, ...notDeleted },
+        data: { deletedAt },
+      })
+
+      await tx.nextOfKin.updateMany({
+        where: { staffId: id, ...notDeleted },
+        data: { deletedAt },
+      })
+
+      await tx.serviceHistory.updateMany({
+        where: { staffId: id, ...notDeleted },
+        data: { deletedAt },
+      })
+
       const user = await tx.user.findFirst({
         where: { staffId: id, ...notDeleted },
       })
@@ -99,18 +134,40 @@ export const staffModel = {
             email: appendDeletedAt(user.email, deletedAt),
           },
         })
+
+        await tx.notification.updateMany({
+          where: { userId: user.id, ...notDeleted },
+          data: { deletedAt },
+        })
       }
 
       return staff
     })
   },
 
-  count(where?: Prisma.StaffWhereInput) {
+  count(where?: Prisma.StaffWhereInput, archived = false) {
     return prisma.staff.count({
       where: {
         ...where,
         ...notDeleted,
+        archivedAt: archived ? { not: null } : null,
       },
+    })
+  },
+
+  archive(id: string) {
+    return prisma.staff.update({
+      where: { id },
+      data: { archivedAt: new Date() },
+      include: staffInclude,
+    })
+  },
+
+  unarchive(id: string) {
+    return prisma.staff.update({
+      where: { id },
+      data: { archivedAt: null },
+      include: staffInclude,
     })
   },
 }

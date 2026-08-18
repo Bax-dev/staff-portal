@@ -6,13 +6,31 @@ export type AuthUser = {
   name: string
   role: FrontendRole
   staffId: string | null
+  photo: string | null
+  theme: AppearanceTheme
+  fontSize: AppearanceFontSize
 }
+
+export type AppearanceTheme = 'light' | 'dark'
+
+export type AppearanceFontSize = 'small' | 'medium' | 'large' | 'xlarge'
 
 export type LoginInput = {
   email: string
   password: string
   role: FrontendRole
-  rememberMe?: boolean
+}
+
+export type UpdateProfileInput = {
+  name?: string
+  photo?: string | null
+  theme?: AppearanceTheme
+  fontSize?: AppearanceFontSize
+}
+
+export type ChangePasswordInput = {
+  currentPassword: string
+  newPassword: string
 }
 
 export type RequestOtpInput = {

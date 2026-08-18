@@ -42,10 +42,6 @@ Thumbs.db
 *.swp
 *.swo
 
-# vercel / v0
+# Vercel build output
 .vercel/
 .snowflake/
-.v0-trash/
-__v0_runtime_loader.js
-__v0_devtools.tsx
-__v0_jsx-dev-runtime.ts
