@@ -16,7 +16,7 @@ export const env = {
   otpTtlSeconds: Number(process.env.OTP_TTL_SECONDS ?? 300),
   otpLength: Number(process.env.OTP_LENGTH ?? 6),
   passwordResetTtlSeconds: Number(process.env.PASSWORD_RESET_TTL_SECONDS ?? 3600),
-  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+  corsOrigin: process.env.CORS_ORIGIN ?? '*',
   s3: {
     region: process.env.AWS_REGION ?? 'eu-west-1',
     accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',

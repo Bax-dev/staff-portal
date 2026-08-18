@@ -1,6 +1,5 @@
 import cors from 'cors'
 import express from 'express'
-import { env } from './config/env.js'
 import { prisma } from './config/database.js'
 import { redis } from './config/redis.js'
 import { auditLogger } from './middleware/audit-logger.js'
@@ -12,7 +11,13 @@ import { asyncHandler } from './utils/async-handler.js'
 export function createApp() {
   const app = express()
 
-  app.use(cors({ origin: env.corsOrigin }))
+  app.use(
+    cors({
+      origin: '*',
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    }),
+  )
   app.use(express.json({ limit: '2mb' }))
   app.use(asyncHandler(optionalAuth))
   app.use(auditLogger)

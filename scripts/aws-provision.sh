@@ -268,8 +268,8 @@ S3_PRESIGN_EXPIRES_SECONDS=300
 EOF
 }
 
-STAGING_CORS="https://staging.${APP_ID}.amplifyapp.com"
-PROD_CORS="https://production.${APP_ID}.amplifyapp.com"
+STAGING_CORS="*"
+PROD_CORS="*"
 write_env "$ENV_DIR/.env.staging" "$STAGING_DB_HOST" "$STAGING_DB_PASS" "$STAGING_REDIS_HOST" "$STAGING_JWT" "$STAGING_OTP" "$STAGING_BUCKET" "$STAGING_CORS"
 write_env "$ENV_DIR/.env.production" "$PROD_DB_HOST" "$PROD_DB_PASS" "$PROD_REDIS_HOST" "$PROD_JWT" "$PROD_OTP" "$PROD_BUCKET" "$PROD_CORS"
 
