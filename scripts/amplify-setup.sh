@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
-# One-time provisioning of the Amplify Hosting app + branches for staff-portal.
-#
-# Prerequisite (console, one-time, can't be scripted headlessly): create the
-# Amplify app and authorize the Amplify GitHub App against Bax-dev/staff-portal at
-# https://console.aws.amazon.com/amplify -> New app -> Host web app -> GitHub.
-# Copy the resulting App ID into APP_ID below (or export it) before running this.
+# Update Amplify build spec and branch env vars for staff-portal.
+# App ID defaults to the provisioned app in us-east-1.
 set -euo pipefail
 
-APP_ID="${APP_ID:?Set APP_ID to the Amplify app id, e.g. export APP_ID=d1a2b3c4d5}"
-API_URL_STAGING="${API_URL_STAGING:?Set API_URL_STAGING, e.g. https://api-staging.example.com}"
-API_URL_PRODUCTION="${API_URL_PRODUCTION:?Set API_URL_PRODUCTION, e.g. https://api.example.com}"
+APP_ID="${APP_ID:-dxv78sz375u86}"
+API_URL_STAGING="${API_URL_STAGING:-}"
+API_URL_PRODUCTION="${API_URL_PRODUCTION:-}"
 
 cd "$(dirname "$0")/.."
 
