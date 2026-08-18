@@ -3,7 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - nvm install 20
+        - nvm use 20
+        - npm ci --include=optional
+        - npm install --no-save lightningcss-linux-x64-gnu@1.32.0 @tailwindcss/oxide-linux-x64-gnu@4.3.3
     build:
       commands:
         - npm run build
