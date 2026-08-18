@@ -4,15 +4,15 @@ import { prisma } from '../config/database.js'
 const notDeleted = { deletedAt: null } as const
 
 export const serviceHistoryModel = {
-  findMany<T extends Prisma.ServiceHistoryFindManyArgs>(args: Prisma.Exact<T, Prisma.ServiceHistoryFindManyArgs> = {} as Prisma.Exact<T, Prisma.ServiceHistoryFindManyArgs>) {
+  findMany(args: Prisma.ServiceHistoryFindManyArgs = {}) {
     return prisma.serviceHistory.findMany({
       orderBy: { effectiveDate: 'desc' },
       ...args,
       where: {
-        ...(args as Prisma.ServiceHistoryFindManyArgs).where,
+        ...args.where,
         ...notDeleted,
       },
-    }) as Prisma.PrismaPromise<Prisma.ServiceHistoryGetPayload<T>[]>
+    })
   },
 
   findByStaffId(staffId: string) {

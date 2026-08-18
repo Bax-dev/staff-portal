@@ -1,3 +1,4 @@
+import { prisma } from '../config/database.js'
 import { serviceHistoryModel } from '../models/service-history.model.js'
 import type { CreateServiceHistoryInput, UpdateServiceHistoryInput } from '../types/staff-records.js'
 import { parseDisplayDate, parseOptionalDate } from '../utils/dates.js'
@@ -6,8 +7,10 @@ import { assertStaffRecord, requireStaff } from './require-staff.js'
 
 export const serviceHistoryService = {
   async listAll() {
-    const records = await serviceHistoryModel.findMany({
+    const records = await prisma.serviceHistory.findMany({
+      where: { deletedAt: null },
       include: { staff: { select: { name: true, staffCode: true } } },
+      orderBy: { effectiveDate: 'desc' },
     })
 
     return records.map((record) => ({
