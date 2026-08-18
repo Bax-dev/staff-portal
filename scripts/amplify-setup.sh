@@ -19,12 +19,12 @@ aws amplify create-branch \
   --stage DEVELOPMENT \
   --framework "Next.js - SSR" \
   --enable-auto-build \
-  --environment-variables NEXT_PUBLIC_API_URL="$API_URL_STAGING" \
+  --environment-variables API_URL="$API_URL_STAGING" \
   || aws amplify update-branch \
        --app-id "$APP_ID" \
        --branch-name staging \
        --enable-auto-build \
-       --environment-variables NEXT_PUBLIC_API_URL="$API_URL_STAGING"
+       --environment-variables API_URL="$API_URL_STAGING"
 
 aws amplify create-branch \
   --app-id "$APP_ID" \
@@ -32,11 +32,11 @@ aws amplify create-branch \
   --stage PRODUCTION \
   --framework "Next.js - SSR" \
   --enable-auto-build \
-  --environment-variables NEXT_PUBLIC_API_URL="$API_URL_PRODUCTION" \
+  --environment-variables API_URL="$API_URL_PRODUCTION" \
   || aws amplify update-branch \
        --app-id "$APP_ID" \
        --branch-name production \
        --enable-auto-build \
-       --environment-variables NEXT_PUBLIC_API_URL="$API_URL_PRODUCTION"
+       --environment-variables API_URL="$API_URL_PRODUCTION"
 
 echo "Done. Push to 'staging' or 'production' to trigger a build."

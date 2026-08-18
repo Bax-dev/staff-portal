@@ -43,3 +43,32 @@ jobs:
             --app-id "${{ vars.AMPLIFY_APP_ID }}" \
             --branch-name "${{ github.ref_name }}" \
             --job-type RELEASE
+
+  api:
+    needs: migrate
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr
+      - name: Build and push API image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}
+        run: |
+          docker build -t "$ECR_REGISTRY/smp-api:$IMAGE_TAG" backend
+          docker push "$ECR_REGISTRY/smp-api:$IMAGE_TAG"
+      - name: Deploy App Runner
+        run: |
+          SERVICE_ARN="$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='smp-api-${{ github.ref_name }}'].ServiceArn | [0]" --output text)"
+          if [ -z "$SERVICE_ARN" ] || [ "$SERVICE_ARN" = "None" ]; then
+            echo "App Runner service smp-api-${{ github.ref_name }} does not exist yet."
+            exit 1
+          fi
+          aws apprunner start-deployment --service-arn "$SERVICE_ARN"

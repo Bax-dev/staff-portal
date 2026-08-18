@@ -4,6 +4,7 @@ import { env } from './env.js'
 export const redis = new Redis(env.redisUrl, {
   lazyConnect: true,
   maxRetriesPerRequest: 1,
+  connectTimeout: 5000,
 })
 
 export async function connectRedis() {

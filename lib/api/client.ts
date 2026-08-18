@@ -10,10 +10,19 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
+function getApiBase() {
+  if (typeof window !== 'undefined') {
+    const { hostname } = window.location
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return ''
+    }
+  }
+
+  return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '')
+}
 
 export function apiUrl(path: string) {
-  return `${API_BASE}${path}`
+  return `${getApiBase()}${path}`
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {

@@ -7,10 +7,14 @@ const app = createApp()
 
 async function start() {
   await connectDatabase()
-  await connectRedis()
+  try {
+    await connectRedis()
+  } catch (error: unknown) {
+    console.error('Redis unavailable; continuing without cache', error)
+  }
 
-  app.listen(env.port, () => {
-    console.info(`Staff portal API listening on http://localhost:${env.port}`)
+  app.listen(env.port, '0.0.0.0', () => {
+    console.info(`Staff portal API listening on 0.0.0.0:${env.port}`)
   })
 }
 
