@@ -9,6 +9,11 @@ frontend:
         - npm install --no-save lightningcss-linux-x64-gnu@1.32.0 @tailwindcss/oxide-linux-x64-gnu@4.3.3
     build:
       commands:
+        - |
+          if [ -n "$API_URL" ]; then
+            echo "API_URL=$API_URL" >> .env.production
+            echo "NEXT_PUBLIC_API_URL=$API_URL" >> .env.production
+          fi
         - npm run build
   artifacts:
     baseDirectory: .next

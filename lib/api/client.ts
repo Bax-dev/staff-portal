@@ -11,6 +11,9 @@ export class ApiError extends Error {
 }
 
 function getApiBase() {
+  const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '')
+  if (configured) return configured
+
   if (typeof window !== 'undefined') {
     const { hostname } = window.location
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
@@ -18,7 +21,7 @@ function getApiBase() {
     }
   }
 
-  return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '')
+  return 'http://localhost:4000'
 }
 
 export function apiUrl(path: string) {

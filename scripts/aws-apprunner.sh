@@ -31,14 +31,18 @@ if ! aws iam get-role --role-name "$ECR_ROLE_NAME" >/dev/null 2>&1; then
 fi
 ECR_ROLE_ARN="$(aws iam get-role --role-name "$ECR_ROLE_NAME" --query Role.Arn --output text)"
 
-aws ecr get-login-password --region "$REGION" \
-  | docker login --username AWS --password-stdin "${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
+if [[ "${SKIP_BUILD:-}" != "1" ]]; then
+  aws ecr get-login-password --region "$REGION" \
+    | docker login --username AWS --password-stdin "${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
 
-docker build -t "${REPO}:latest" "$ROOT/backend"
-docker tag "${REPO}:latest" "${IMAGE}:staging"
-docker tag "${REPO}:latest" "${IMAGE}:production"
-docker push "${IMAGE}:staging"
-docker push "${IMAGE}:production"
+  docker build -t "${REPO}:latest" "$ROOT/backend"
+  docker tag "${REPO}:latest" "${IMAGE}:staging"
+  docker tag "${REPO}:latest" "${IMAGE}:production"
+  docker push "${IMAGE}:staging"
+  docker push "${IMAGE}:production"
+else
+  echo "SKIP_BUILD=1; using existing ${IMAGE}:staging and ${IMAGE}:production"
+fi
 
 DEFAULT_VPC="$(aws ec2 describe-vpcs --filters Name=isDefault,Values=true --query 'Vpcs[0].VpcId' --output text)"
 SUBNET_A="$(aws ec2 describe-subnets --filters Name=vpc-id,Values="$DEFAULT_VPC" Name=availability-zone,Values="${REGION}a" --query 'Subnets[0].SubnetId' --output text)"
@@ -115,7 +119,18 @@ ensure_service smp-api-production production "$ROOT/backend/.env.production" "$P
 echo "Waiting for App Runner services..."
 for name in smp-api-staging smp-api-production; do
   arn="$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$name'].ServiceArn | [0]" --output text)"
-  aws apprunner wait service-running --service-arn "$arn"
+  for _ in $(seq 1 60); do
+    svc_status="$(aws apprunner describe-service --service-arn "$arn" --query Service.Status --output text)"
+    echo "$name $svc_status"
+    if [[ "$svc_status" == "RUNNING" ]]; then
+      break
+    fi
+    if [[ "$svc_status" == "CREATE_FAILED" || "$svc_status" == "DELETE_FAILED" || "$svc_status" == "UPDATE_FAILED" ]]; then
+      echo "App Runner $name failed with status $svc_status"
+      exit 1
+    fi
+    sleep 15
+  done
 done
 
 aws apprunner list-services --query 'ServiceSummaryList[?starts_with(ServiceName, `smp-api`)].[ServiceName,Status,ServiceUrl]' --output table
@@ -125,11 +140,11 @@ PROD_URL="$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName
 
 if [[ -n "$STAGING_URL" && "$STAGING_URL" != "None" ]]; then
   aws amplify update-branch --app-id "$APP_ID" --branch-name staging \
-    --environment-variables "API_URL=https://${STAGING_URL}"
+    --environment-variables "API_URL=https://${STAGING_URL},NEXT_PUBLIC_API_URL=https://${STAGING_URL}"
 fi
 if [[ -n "$PROD_URL" && "$PROD_URL" != "None" ]]; then
   aws amplify update-branch --app-id "$APP_ID" --branch-name production \
-    --environment-variables "API_URL=https://${PROD_URL}"
+    --environment-variables "API_URL=https://${PROD_URL},NEXT_PUBLIC_API_URL=https://${PROD_URL}"
 fi
 
 echo "API_URL staging=https://${STAGING_URL}"
