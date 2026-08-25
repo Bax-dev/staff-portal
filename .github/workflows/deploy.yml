@@ -64,11 +64,25 @@ jobs:
         run: |
           docker build -t "$ECR_REGISTRY/smp-api:$IMAGE_TAG" backend
           docker push "$ECR_REGISTRY/smp-api:$IMAGE_TAG"
-      - name: Deploy App Runner
+      - name: Wait for App Runner service to be ready
         run: |
           SERVICE_ARN="$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='smp-api-${{ github.ref_name }}'].ServiceArn | [0]" --output text)"
           if [ -z "$SERVICE_ARN" ] || [ "$SERVICE_ARN" = "None" ]; then
             echo "App Runner service smp-api-${{ github.ref_name }} does not exist yet."
             exit 1
           fi
-          aws apprunner start-deployment --service-arn "$SERVICE_ARN"
+          echo "SERVICE_ARN=$SERVICE_ARN" >> "$GITHUB_ENV"
+
+          for i in $(seq 1 30); do
+            STATUS="$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --query "Service.Status" --output text)"
+            echo "Service status: $STATUS"
+            if [ "$STATUS" = "RUNNING" ]; then
+              exit 0
+            fi
+            sleep 20
+          done
+
+          echo "Timed out waiting for smp-api-${{ github.ref_name }} to reach RUNNING."
+          exit 1
+      - name: Deploy App Runner
+        run: aws apprunner start-deployment --service-arn "$SERVICE_ARN"
