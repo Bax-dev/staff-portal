@@ -76,6 +76,7 @@ model Staff {
   id              String      @id @default(uuid())
   staffCode       String      @unique @map("staff_id")
   name            String
+  title           String      @default("Not specified")
   designation     String
   departmentId    String
   department      Department  @relation(fields: [departmentId], references: [id])
@@ -84,6 +85,7 @@ model Staff {
   gender          String
   status          StaffStatus @default(ACTIVE)
   grade           String
+  cadre           String      @default("Not specified")
   appointmentDate DateTime
   location        String
   nationality     String      @default("Nigerian")

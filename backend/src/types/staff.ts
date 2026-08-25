@@ -16,6 +16,7 @@ export type StaffListQuery = {
 
 export type CreateStaffInput = {
   name: string
+  title?: string
   staffId: string
   designation: string
   department: string
@@ -24,6 +25,7 @@ export type CreateStaffInput = {
   gender?: string
   status?: StaffStatusLabel
   grade?: string
+  cadre?: string
   appointmentDate?: string
   location?: string
   nationality?: string
@@ -48,6 +50,7 @@ export type UpdateStaffInput = Partial<CreateStaffInput>
 export type StaffDto = {
   id: string
   name: string
+  title: string
   designation: string
   department: string
   email: string
@@ -55,6 +58,7 @@ export type StaffDto = {
   gender: string
   status: StaffStatusLabel
   grade: string
+  cadre: string
   appointmentDate: string
   location: string
   nationality: string

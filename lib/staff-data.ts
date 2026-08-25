@@ -3,6 +3,7 @@ import { Archive, BarChart3, Building2, CircleHelp, FolderOpen, LayoutDashboard,
 export type Staff = {
   id: string
   name: string
+  title: string
   designation: string
   department: string
   email: string
@@ -10,6 +11,7 @@ export type Staff = {
   gender: string
   status: 'Active' | 'On leave' | 'Probation'
   grade: string
+  cadre: string
   appointmentDate: string
   location: string
   nationality: string

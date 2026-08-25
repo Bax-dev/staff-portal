@@ -31,6 +31,7 @@ export const staffListQuerySchema = z.object({
 
 export const createStaffSchema = z.object({
   name: requiredText,
+  title: optionalText,
   staffId: requiredText,
   designation: requiredText,
   department: requiredText,
@@ -39,6 +40,7 @@ export const createStaffSchema = z.object({
   gender: optionalText,
   status: staffStatus.optional(),
   grade: optionalText,
+  cadre: optionalText,
   appointmentDate: optionalText,
   location: optionalText,
   nationality: optionalText,

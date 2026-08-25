@@ -12,6 +12,7 @@ import { type Staff, type StaffFormValues } from '@/lib/staff-data'
 import { useStaff } from '@/lib/staff-context'
 
 const statuses: Staff['status'][] = ['Active', 'On leave', 'Probation']
+const titles = ['Mr', 'Mrs', 'Miss', 'Dr', 'Prof', 'Not specified']
 const genders = ['Female', 'Male', 'Not specified']
 const maritalStatuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Not specified']
 
@@ -51,6 +52,7 @@ export function StaffFormModal({
     const form = new FormData(event.currentTarget)
     const values: StaffFormValues = {
       name: field(form, 'name'),
+      title: field(form, 'title'),
       staffId: field(form, 'staffId'),
       designation: field(form, 'designation'),
       department: field(form, 'department'),
@@ -59,6 +61,7 @@ export function StaffFormModal({
       phone: field(form, 'phone'),
       gender: field(form, 'gender'),
       grade: field(form, 'grade'),
+      cadre: field(form, 'cadre'),
       appointmentDate: field(form, 'appointmentDate'),
       location: field(form, 'location'),
       nationality: field(form, 'nationality'),
@@ -124,7 +127,7 @@ export function StaffFormModal({
                   Remove photo
                 </button>
               ) : (
-                <p className="text-xs text-muted-foreground">JPG or PNG, stored in S3.</p>
+                <p className="text-xs text-muted-foreground">JPG, JPEG, PNG, or WebP.</p>
               )}
             </div>
           </div>
@@ -132,6 +135,14 @@ export function StaffFormModal({
           <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             <FieldLabel required>Full name</FieldLabel>
             <input required name="name" value={name} onChange={(event) => setName(event.target.value)} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
+          </label>
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+            Title
+            <select name="title" defaultValue={staff?.title ?? 'Not specified'} className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal">
+              {titles.map((title) => (
+                <option key={title}>{title}</option>
+              ))}
+            </select>
           </label>
           <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             <FieldLabel required>Staff ID</FieldLabel>
@@ -160,6 +171,10 @@ export function StaffFormModal({
           <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Grade level / step
             <input name="grade" defaultValue={staff?.grade} placeholder="GL 12 / Step 4" className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
+          </label>
+          <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+            Cadre
+            <input name="cadre" defaultValue={staff?.cadre} placeholder="e.g. Administrative" className="h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-normal" />
           </label>
           <label className="flex min-w-0 flex-col gap-2 text-sm font-medium">
             Email

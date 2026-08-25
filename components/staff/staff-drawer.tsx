@@ -13,10 +13,10 @@ function display(value?: string) {
 export function StaffDrawer({ person, onClose }: { person: Staff; onClose: () => void }) {
   const { openEditForm, requestDelete, requestArchive, requestUnarchive } = useStaff()
   const sections = [
-    ['Personal details', [['Name', person.name], ['Date of birth', person.dob], ['Gender', person.gender], ['Marital status', person.maritalStatus], ['Nationality', person.nationality]]],
+    ['Personal details', [['Name', person.name], ['Title', person.title], ['Date of birth', person.dob], ['Gender', person.gender], ['Marital status', person.maritalStatus], ['Nationality', person.nationality]]],
     ['Contact details', [['Phone', person.phone], ['Email', person.email], ['State', person.location]]],
     ['Identity', [['Staff ID', person.staffId], ['NIN', display(person.nin)], ['TIN', display(person.tin)], ['Pension PIN', display(person.pensionPin)]]],
-    ['Employment', [['Cadre / rank', person.designation], ['Grade level / step', person.grade], ['Department', person.department], ['Status', person.status], ['Appointment date', person.appointmentDate]]],
+    ['Employment', [['Designation', person.designation], ['Cadre', person.cadre], ['Grade level / step', person.grade], ['Department', person.department], ['Status', person.status], ['Appointment date', person.appointmentDate]]],
     ['Payroll', [['Bank / account', display(person.bankName) === 'Not provided' ? 'Not provided' : `${person.bankName} ${person.accountNumber}`.trim()], ['BVN', display(person.bvn)], ['IPPIS', display(person.ippis)], ['PFA', display(person.pfa)]]],
     ['Medical', [['Blood group', display(person.bloodGroup)], ['Genotype', display(person.genotype)], ['Medical fitness', display(person.medicalFitness)]]],
   ]

@@ -140,8 +140,8 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
   }, [refresh])
 
   function exportCsv() {
-    const headers = ['Name', 'Staff ID', 'Designation', 'Department', 'Email', 'Phone', 'Gender', 'Status', 'Grade', 'Appointment date', 'Location']
-    const rows = filteredStaff.map((p) => [p.name, p.staffId, p.designation, p.department, p.email, p.phone, p.gender, p.status, p.grade, p.appointmentDate, p.location])
+    const headers = ['Name', 'Title', 'Staff ID', 'Designation', 'Department', 'Email', 'Phone', 'Gender', 'Status', 'Grade', 'Cadre', 'Appointment date', 'Location']
+    const rows = filteredStaff.map((p) => [p.name, p.title, p.staffId, p.designation, p.department, p.email, p.phone, p.gender, p.status, p.grade, p.cadre, p.appointmentDate, p.location])
     const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\n')
     const link = document.createElement('a')
     link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
@@ -167,6 +167,7 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
           const status = spreadsheetField(row, ['Status', 'status'], 'Active')
           return {
             name: spreadsheetField(row, ['Name', 'name'], 'Unnamed staff'),
+            title: spreadsheetField(row, ['Title', 'title'], 'Not specified'),
             staffId: spreadsheetField(row, ['Staff ID', 'staffId'], `IMP-${index + 1}`),
             designation: spreadsheetField(row, ['Designation', 'designation'], 'Staff'),
             department: spreadsheetField(row, ['Department', 'department'], 'Planning and Design'),
@@ -175,6 +176,7 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
             gender: spreadsheetField(row, ['Gender', 'gender'], 'Not specified'),
             status: status === 'On leave' || status === 'Probation' ? status : 'Active',
             grade: spreadsheetField(row, ['Grade', 'grade'], 'Not specified'),
+            cadre: spreadsheetField(row, ['Cadre', 'cadre'], 'Not specified'),
             appointmentDate: spreadsheetField(row, ['Appointment date', 'appointmentDate'], '01 Jan 2020'),
             location: spreadsheetField(row, ['Location', 'location'], 'Not specified'),
             nationality: spreadsheetField(row, ['Nationality', 'nationality'], 'Nigerian'),

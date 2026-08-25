@@ -17,6 +17,7 @@ export function toStaffDto(staff: StaffWithDepartment): StaffDto {
   return {
     id: staff.id,
     name: staff.name,
+    title: staff.title,
     designation: staff.designation,
     department: staff.department.name,
     email: staff.email,
@@ -24,6 +25,7 @@ export function toStaffDto(staff: StaffWithDepartment): StaffDto {
     gender: staff.gender,
     status: staffStatusLabels[staff.status],
     grade: staff.grade,
+    cadre: staff.cadre,
     appointmentDate: formatDisplayDate(staff.appointmentDate),
     location: staff.location,
     nationality: staff.nationality,
@@ -60,6 +62,7 @@ export function toStaffWriteData(input: CreateStaffInput, departmentId: string) 
   return {
     staffCode: input.staffId,
     name: input.name,
+    title: input.title ?? 'Not specified',
     designation: input.designation,
     departmentId,
     email: input.email ?? '',
@@ -67,6 +70,7 @@ export function toStaffWriteData(input: CreateStaffInput, departmentId: string) 
     gender: input.gender ?? 'Not specified',
     status: parseStaffStatus(input.status) ?? 'ACTIVE',
     grade: input.grade ?? 'Not specified',
+    cadre: input.cadre ?? 'Not specified',
     appointmentDate: input.appointmentDate ? parseDisplayDate(input.appointmentDate) : new Date(),
     location: input.location ?? 'Not specified',
     nationality: input.nationality ?? 'Nigerian',

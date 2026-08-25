@@ -77,6 +77,7 @@ export const staffService = {
     const { departmentId, ...data } = toStaffWriteData(
       {
         name: input.name ?? current.name,
+        title: input.title ?? current.title,
         staffId: input.staffId ?? current.staffCode,
         designation: input.designation ?? current.designation,
         department: departmentName,
@@ -84,6 +85,7 @@ export const staffService = {
         phone: input.phone ?? current.phone,
         gender: input.gender ?? current.gender,
         grade: input.grade ?? current.grade,
+        cadre: input.cadre ?? current.cadre,
         location: input.location ?? current.location,
         nationality: input.nationality ?? current.nationality,
         maritalStatus: input.maritalStatus ?? current.maritalStatus,
