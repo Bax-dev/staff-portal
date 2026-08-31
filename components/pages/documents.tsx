@@ -8,6 +8,7 @@ import { StaffAvatar } from '@/components/staff/staff-avatar'
 import { documentApi, inferFileMimeType, resolveMediaUrl, serviceHistoryApi, uploadFileToS3 } from '@/lib/api'
 import { ApiError } from '@/lib/api/client'
 import type { DocumentCategory, ServiceHistoryRecord, StaffDocument } from '@/lib/api/types'
+import { useAuth } from '@/lib/auth-context'
 import { formatDateLabel } from '@/lib/dates'
 import { useStaff } from '@/lib/staff-context'
 
@@ -30,6 +31,9 @@ function recordCountLabel(count: number) {
 
 export function Documents() {
   const { staff, isLoading: staffLoading, triggerImport, exportCsv, exportXlsx, defaultExportFormat, dataVersion, selectStaff } = useStaff()
+  const { hasPermission } = useAuth()
+  const canEdit = hasPermission('DOCUMENTS', 'edit')
+  const canDelete = hasPermission('DOCUMENTS', 'delete')
   const [documents, setDocuments] = useState<StaffDocument[]>([])
   const [serviceHistory, setServiceHistory] = useState<ServiceHistoryRecord[]>([])
   const [viewCategory, setViewCategory] = useState<DocumentCategory>('STAFF_REGISTER')
@@ -97,10 +101,12 @@ export function Documents() {
           <p className="mt-2 text-sm text-muted-foreground">Import staff registers and upload identity or service records.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={triggerImport}>
-            <Upload data-icon="inline-start" />
-            Upload register
-          </Button>
+          {canEdit && (
+            <Button variant="outline" onClick={triggerImport}>
+              <Upload data-icon="inline-start" />
+              Upload register
+            </Button>
+          )}
           <Button onClick={defaultExportFormat === 'CSV' ? exportCsv : exportXlsx}>
             <ArrowDownToLine data-icon="inline-start" />
             Download register
@@ -119,20 +125,22 @@ export function Documents() {
               <h3 className="font-semibold">{title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{description}</p>
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewCategory(category)
-                if (category === 'STAFF_REGISTER') {
-                  triggerImport()
-                  return
-                }
-                fileInputRef.current?.click()
-              }}
-              className="mt-5 text-xs font-semibold text-primary"
-            >
-              {category === 'STAFF_REGISTER' ? 'Upload data' : 'Upload file'} <ChevronRight className="ml-1 inline size-3" />
-            </button>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  setViewCategory(category)
+                  if (category === 'STAFF_REGISTER') {
+                    triggerImport()
+                    return
+                  }
+                  fileInputRef.current?.click()
+                }}
+                className="mt-5 text-xs font-semibold text-primary"
+              >
+                {category === 'STAFF_REGISTER' ? 'Upload data' : 'Upload file'} <ChevronRight className="ml-1 inline size-3" />
+              </button>
+            )}
             <p className="mt-3 text-xs text-muted-foreground">
               {isLoading || (category === 'STAFF_REGISTER' && staffLoading) ? '…' : recordCountLabel(counts[category])}
             </p>
@@ -173,6 +181,7 @@ export function Documents() {
             isLoading={isLoading}
             emptyLabel="No identity documents uploaded yet."
             onReload={load}
+            canDelete={canDelete}
           />
         )}
         {viewCategory === 'SERVICE_HISTORY' && (
@@ -212,11 +221,13 @@ function DocumentList({
   isLoading,
   emptyLabel,
   onReload,
+  canDelete,
 }: {
   documents: StaffDocument[]
   isLoading: boolean
   emptyLabel: string
   onReload: () => Promise<void>
+  canDelete: boolean
 }) {
   return (
     <div className="divide-y">
@@ -241,19 +252,21 @@ function DocumentList({
             >
               <ArrowDownToLine className="size-4" />
             </button>
-            <button
-              type="button"
-              aria-label={`Remove ${doc.title}`}
-              onClick={() => {
-                documentApi
-                  .remove(doc.id)
-                  .then(onReload)
-                  .catch((caught: unknown) => toastError(caught, 'Could not remove this file.'))
-              }}
-              className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash2 className="size-4" />
-            </button>
+            {canDelete && (
+              <button
+                type="button"
+                aria-label={`Remove ${doc.title}`}
+                onClick={() => {
+                  documentApi
+                    .remove(doc.id)
+                    .then(onReload)
+                    .catch((caught: unknown) => toastError(caught, 'Could not remove this file.'))
+                }}
+                className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            )}
           </div>
         </div>
       ))}

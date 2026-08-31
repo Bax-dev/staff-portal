@@ -12,7 +12,7 @@ import { type Staff, type StaffFormValues } from '@/lib/staff-data'
 import { useStaff } from '@/lib/staff-context'
 
 const statuses: Staff['status'][] = ['Active', 'On leave', 'Probation']
-const titles = ['Mr', 'Mrs', 'Miss', 'Dr', 'Prof', 'Not specified']
+const titles = ['Mr', 'Mrs', 'Miss', 'Ms', 'Dr', 'Engineer', 'Professor', 'Master', 'Not specified']
 const genders = ['Female', 'Male', 'Not specified']
 const maritalStatuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Not specified']
 

@@ -3,17 +3,30 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { authApi } from '@/lib/api'
 import { clearAuth, getStoredAuthUser, getStoredToken, persistAuth } from '@/lib/api/client'
-import type { AuthUser } from '@/lib/api/types'
+import type { AuthUser, Screen, ScreenPermission } from '@/lib/api/types'
 import { applyAppearance } from '@/lib/appearance'
 import type { Role } from '@/lib/auth'
+
+type PermissionCapability = 'view' | 'edit' | 'delete'
 
 type AuthContextValue = {
   user: AuthUser | null
   role: Role | null
+  permissions: ScreenPermission[]
+  hasPermission: (screen: Screen, capability: PermissionCapability) => boolean
   isLoading: boolean
   login: (input: { email: string; password: string; role: Role }) => Promise<void>
   logout: () => void
   updateUser: (user: AuthUser) => void
+}
+
+function checkPermission(role: Role | null, permissions: ScreenPermission[], screen: Screen, capability: PermissionCapability) {
+  if (role === 'admin') return true
+  const entry = permissions.find((permission) => permission.screen === screen)
+  if (!entry) return false
+  if (capability === 'view') return entry.canView
+  if (capability === 'edit') return entry.canEdit
+  return entry.canDelete
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -58,8 +71,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(next)
   }
 
+  const role = user?.role ?? null
+  const permissions = user?.permissions ?? []
+
   return (
-    <AuthContext.Provider value={{ user, role: user?.role ?? null, isLoading, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role,
+        permissions,
+        hasPermission: (screen, capability) => checkPermission(role, permissions, screen, capability),
+        isLoading,
+        login,
+        logout,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
