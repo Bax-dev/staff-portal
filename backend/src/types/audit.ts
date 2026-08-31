@@ -1,4 +1,4 @@
-import type { AuditAction } from '@prisma/client'
+import type { AuditAction, UserRole } from '@prisma/client'
 
 export type { AuditAction }
 
@@ -6,6 +6,7 @@ export type RequestActor = {
   id: string
   name: string
   email: string
+  role: UserRole
 }
 
 export type AuditListQuery = {

@@ -41,6 +41,23 @@ enum AuditAction {
   UNARCHIVE
 }
 
+enum DepartmentType {
+  DIRECTORATE
+  DEPARTMENT
+  UNIT
+}
+
+enum Screen {
+  OVERVIEW
+  DIRECTORY
+  ARCHIVE
+  ORGANIZATION
+  DOCUMENTS
+  REPORTS
+  AUDIT_LOG
+  SETTINGS
+}
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -54,6 +71,7 @@ model User {
   staff         Staff?         @relation(fields: [staffId], references: [id])
   notifications Notification[]
   auditLogs     AuditLog[]
+  permissions   UserPermission[]
   deletedAt     DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -61,15 +79,31 @@ model User {
   @@index([deletedAt])
 }
 
+model UserPermission {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  screen    Screen
+  canView   Boolean  @default(false)
+  canEdit   Boolean  @default(false)
+  canDelete Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, screen])
+  @@index([userId])
+}
+
 model Department {
-  id        String       @id @default(uuid())
-  name      String       @unique
+  id        String         @id @default(uuid())
+  name      String         @unique
+  type      DepartmentType @default(UNIT)
   parentId  String?
-  parent    Department?  @relation("DepartmentTree", fields: [parentId], references: [id])
-  children  Department[] @relation("DepartmentTree")
+  parent    Department?    @relation("DepartmentTree", fields: [parentId], references: [id])
+  children  Department[]   @relation("DepartmentTree")
   staff     Staff[]
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 }
 
 model Staff {

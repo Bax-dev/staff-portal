@@ -24,7 +24,7 @@ export const authService = {
 
     return {
       token: signSession(user.id, user.email, user.role),
-      user: toAuthUser(user),
+      user: await toAuthUser(user),
     }
   },
 
@@ -77,7 +77,7 @@ export const authService = {
       ...(input.fontSize ? { fontSize: input.fontSize } : {}),
     })
 
-    return toAuthUser(updated)
+    return await toAuthUser(updated)
   },
 
   async changePassword(userId: string, { currentPassword, newPassword }: ChangePasswordInput) {
@@ -122,7 +122,7 @@ export const authService = {
 
     return {
       token: signSession(user.id, user.email, user.role),
-      user: toAuthUser(user),
+      user: await toAuthUser(user),
     }
   },
 }

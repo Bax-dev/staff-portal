@@ -34,6 +34,7 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       }
     }
   } catch (error: unknown) {

@@ -65,3 +65,7 @@ export const updateStaffSchema = createStaffSchema.partial()
 export const importStaffSchema = z.object({
   rows: z.array(createStaffSchema).min(1),
 })
+
+export const bulkDeleteStaffSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1),
+})

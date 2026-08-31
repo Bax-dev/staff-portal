@@ -1,4 +1,13 @@
+import type { Screen } from '@prisma/client'
+
 export type FrontendRole = 'admin' | 'staff'
+
+export type ScreenPermission = {
+  screen: Screen
+  canView: boolean
+  canEdit: boolean
+  canDelete: boolean
+}
 
 export type AuthUser = {
   id: string
@@ -9,6 +18,7 @@ export type AuthUser = {
   photo: string | null
   theme: AppearanceTheme
   fontSize: AppearanceFontSize
+  permissions: ScreenPermission[]
 }
 
 export type AppearanceTheme = 'light' | 'dark'

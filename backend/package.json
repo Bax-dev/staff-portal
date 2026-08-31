@@ -9,7 +9,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "migrate:db": "bash scripts/migrate-db.sh",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "cleanup:unnamed-staff": "tsx scripts/cleanup-unnamed-staff.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -19,9 +20,11 @@
     "@aws-sdk/s3-request-presigner": "^3.1112.0",
     "@prisma/client": "^6.16.0",
     "cors": "^2.8.5",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "ioredis": "^5.8.0",
     "jsonwebtoken": "^9.0.2",
+    "pdfkit": "^0.20.2",
     "zod": "^4.1.5"
   },
   "devDependencies": {
@@ -29,6 +32,7 @@
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24",
+    "@types/pdfkit": "^0.17.6",
     "prisma": "^6.16.0",
     "tsx": "^4.20.5",
     "typescript": "5.7.3"

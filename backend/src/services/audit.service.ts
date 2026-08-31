@@ -54,7 +54,7 @@ export const auditService = {
     if (!actor && input.actorEmail) {
       const user = await userModel.findByEmail(input.actorEmail)
       if (user) {
-        actor = { id: user.id, name: user.name, email: user.email }
+        actor = { id: user.id, name: user.name, email: user.email, role: user.role }
       }
     }
 

@@ -109,6 +109,12 @@ export const staffService = {
     await staffModel.softDelete(id)
   },
 
+  async removeMany(ids: string[]) {
+    const results = await Promise.allSettled(ids.map((id) => this.remove(id)))
+    const removed = results.filter((result) => result.status === 'fulfilled').length
+    return { removed, failed: ids.length - removed }
+  },
+
   async archive(id: string) {
     const current = await staffModel.findById(id)
     if (!current) {

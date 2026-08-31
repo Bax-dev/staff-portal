@@ -6,6 +6,7 @@ import { emergencyContactController } from '../controllers/emergency-contact.con
 import { familyMemberController } from '../controllers/family-member.controller.js'
 import { nextOfKinController } from '../controllers/next-of-kin.controller.js'
 import { serviceHistoryController } from '../controllers/service-history.controller.js'
+import { requirePermission } from '../middleware/require-permission.js'
 import { validate } from '../middleware/validate.js'
 import { asyncHandler } from '../utils/async-handler.js'
 import type { AsyncHandler } from '../utils/async-handler.js'
@@ -33,10 +34,10 @@ function childRoutes(
   updateSchema: ZodType,
 ) {
   const router = Router({ mergeParams: true })
-  router.get('/', asyncHandler(list))
-  router.post('/', validate(createSchema), asyncHandler(create))
-  router.patch('/:id', validate(updateSchema), asyncHandler(update))
-  router.delete('/:id', asyncHandler(remove))
+  router.get('/', requirePermission('DIRECTORY', 'view'), asyncHandler(list))
+  router.post('/', requirePermission('DIRECTORY', 'edit'), validate(createSchema), asyncHandler(create))
+  router.patch('/:id', requirePermission('DIRECTORY', 'edit'), validate(updateSchema), asyncHandler(update))
+  router.delete('/:id', requirePermission('DIRECTORY', 'delete'), asyncHandler(remove))
   return router
 }
 

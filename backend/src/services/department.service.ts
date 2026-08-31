@@ -7,10 +7,12 @@ export const departmentService = {
     return departments.map((department) => ({
       id: department.id,
       name: department.name,
+      type: department.type,
       parentId: department.parentId,
       children: department.children.map((child) => ({
         id: child.id,
         name: child.name,
+        type: child.type,
       })),
     }))
   },
@@ -22,14 +24,17 @@ export const departmentService = {
     return roots.map((root) => ({
       id: root.id,
       name: root.name,
+      type: root.type,
       children: departments
         .filter((department) => department.parentId === root.id)
         .map((branch) => ({
           id: branch.id,
           name: branch.name,
+          type: branch.type,
           children: branch.children.map((unit) => ({
             id: unit.id,
             name: unit.name,
+            type: unit.type,
           })),
         })),
     }))

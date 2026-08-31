@@ -28,6 +28,12 @@ export const staffController = {
     res.status(204).send()
   },
 
+  async removeMany(req: Request, res: Response) {
+    const { ids } = req.body as { ids: string[] }
+    const result = await staffService.removeMany(ids)
+    res.status(200).json({ data: result })
+  },
+
   async archive(req: Request, res: Response) {
     const staff = await staffService.archive(String(req.params.id))
     res.status(200).json({ data: staff })

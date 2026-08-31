@@ -23,4 +23,36 @@ export const userModel = {
   update(id: string, data: Prisma.UserUpdateInput) {
     return prisma.user.update({ where: { id }, data })
   },
+
+  findByStaffId(staffId: string) {
+    return prisma.user.findUnique({ where: { staffId } })
+  },
+
+  findByEmailAny(email: string) {
+    return prisma.user.findUnique({ where: { email: email.toLowerCase() } })
+  },
+
+  // Unlike findById, this does not filter out soft-deleted accounts — account
+  // management screens need to find/act on deactivated users too (e.g. to
+  // reactivate them or inspect their permissions).
+  findAccountById(id: string) {
+    return prisma.user.findUnique({
+      where: { id },
+      include: {
+        staff: { select: { name: true, designation: true } },
+        permissions: true,
+      },
+    })
+  },
+
+  listAccounts() {
+    return prisma.user.findMany({
+      where: { staffId: { not: null } },
+      include: {
+        staff: { select: { name: true, designation: true } },
+        permissions: true,
+      },
+      orderBy: { staff: { name: 'asc' } },
+    })
+  },
 }
