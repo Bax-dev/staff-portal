@@ -4,14 +4,13 @@ import Link from 'next/link'
 import { Activity, Building2, ChevronRight, ClipboardList, MoreHorizontal, Users, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StaffAvatar } from '@/components/staff/staff-avatar'
-import { flattenDepartmentNames } from '@/lib/staff-data'
 import { useStaff } from '@/lib/staff-context'
 
 export function Overview() {
   const { staff, orgTree, isLoading, error, selectStaff } = useStaff()
   const recentStaff = staff.slice(0, 4)
-  const departmentCount = flattenDepartmentNames(orgTree).length
-  const functionalUnits = orgTree[0]?.children.reduce((count, unit) => count + 1 + unit.children.length, 0) ?? 0
+  const departmentCount = orgTree[0]?.children.length ?? 0
+  const functionalUnits = orgTree[0]?.children.reduce((count, department) => count + department.children.length, 0) ?? 0
 
   const stats: [string, string | number, LucideIcon][] = [
     ['Total staff', isLoading ? '…' : staff.length, Users],
@@ -88,9 +87,9 @@ export function Overview() {
             </Link>
             <div className="h-4 w-px bg-border" />
             <div className="grid w-full gap-2 sm:grid-cols-3">
-              {(orgTree[0]?.children ?? []).map((unit) => (
-                <Link key={unit.id} href="/organization" className="rounded-lg border bg-muted/30 px-2 py-3 text-center text-xs font-semibold hover:border-primary">
-                  {unit.name}
+              {(orgTree[0]?.children ?? []).map((department) => (
+                <Link key={department.id} href="/organization" className="rounded-lg border bg-muted/30 px-2 py-3 text-center text-xs font-semibold hover:border-primary">
+                  {department.name}
                 </Link>
               ))}
             </div>

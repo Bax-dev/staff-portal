@@ -1,4 +1,4 @@
-import { api } from '@/lib/api/client'
+import { api, downloadFile } from '@/lib/api/client'
 import type { Staff, StaffFormValues } from '@/lib/staff-data'
 import type {
   AppearanceFontSize,
@@ -18,12 +18,16 @@ import type {
   NextOfKinRecord,
   OverviewReport,
   PresignUploadResult,
+  ScreenPermission,
   ServiceHistoryRecord,
+  StaffAccount,
   StaffDocument,
   WorkforceReport,
   WorkspaceSettings,
 } from '@/lib/api/types'
 import type { Role } from '@/lib/auth'
+
+type ExportFormat = 'xlsx' | 'pdf'
 
 export const authApi = {
   login(input: { email: string; password: string; role: Role }) {
@@ -95,6 +99,9 @@ export const staffApi = {
   remove(id: string) {
     return api<void>(`/api/staff/${id}`, { method: 'DELETE' })
   },
+  removeMany(ids: string[]) {
+    return api<{ removed: number; failed: number }>('/api/staff/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) })
+  },
   archive(id: string) {
     return api<Staff>(`/api/staff/${id}/archive`, { method: 'POST' })
   },
@@ -103,6 +110,66 @@ export const staffApi = {
   },
   importRows(rows: StaffFormValues[]) {
     return api<Staff[]>('/api/staff/import', { method: 'POST', body: JSON.stringify({ rows }) })
+  },
+}
+
+type StaffAccountWithPassword = StaffAccount & { plainPassword: string }
+
+function createStaffAccount(input: { staffId: string; email: string; password?: string }): Promise<StaffAccountWithPassword>
+function createStaffAccount(input: { staffId: string; email: string; password?: string }, exportFormat: ExportFormat): Promise<void>
+function createStaffAccount(input: { staffId: string; email: string; password?: string }, exportFormat?: ExportFormat) {
+  if (exportFormat) {
+    return downloadFile(`/api/user-accounts?export=${exportFormat}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+  }
+  return api<StaffAccountWithPassword>('/api/user-accounts', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+function resetStaffAccountPassword(id: string, password?: string): Promise<StaffAccountWithPassword>
+function resetStaffAccountPassword(id: string, password: string | undefined, exportFormat: ExportFormat): Promise<void>
+function resetStaffAccountPassword(id: string, password?: string, exportFormat?: ExportFormat) {
+  if (exportFormat) {
+    return downloadFile(`/api/user-accounts/${id}/reset-password?export=${exportFormat}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    })
+  }
+  return api<StaffAccountWithPassword>(`/api/user-accounts/${id}/reset-password`, {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  })
+}
+
+export const staffAccountsApi = {
+  list() {
+    return api<StaffAccount[]>('/api/user-accounts')
+  },
+  get(id: string) {
+    return api<StaffAccount>(`/api/user-accounts/${id}`)
+  },
+  create: createStaffAccount,
+  updatePermissions(id: string, permissions: ScreenPermission[]) {
+    return api<StaffAccount>(`/api/user-accounts/${id}/permissions`, {
+      method: 'PATCH',
+      body: JSON.stringify({ permissions }),
+    })
+  },
+  resetPassword: resetStaffAccountPassword,
+  deactivate(id: string) {
+    return api<StaffAccount>(`/api/user-accounts/${id}/deactivate`, { method: 'POST' })
+  },
+  reactivate(id: string) {
+    return api<StaffAccount>(`/api/user-accounts/${id}/reactivate`, { method: 'POST' })
+  },
+  remove(id: string) {
+    return api<void>(`/api/user-accounts/${id}`, { method: 'DELETE' })
   },
 }
 

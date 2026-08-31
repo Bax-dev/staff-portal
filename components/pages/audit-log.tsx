@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Pagination } from '@/components/ui/pagination'
 import { auditApi } from '@/lib/api'
 import type { AuditAction, AuditLog } from '@/lib/api/types'
 import { ApiError } from '@/lib/api/client'
+import { usePagination } from '@/lib/use-pagination'
 
 const actions: Array<{ value: '' | AuditAction; label: string }> = [
   { value: '', label: 'All actions' },
@@ -69,6 +71,7 @@ export function AuditLogPage() {
   const [reloadToken, setReloadToken] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { pageItems, page, pageSize, setPage, setPageSize, totalPages, totalItems } = usePagination(logs)
 
   useEffect(() => {
     let cancelled = false
@@ -170,7 +173,7 @@ export function AuditLogPage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {logs.map((log) => (
+              {pageItems.map((log) => (
                 <tr key={log.id} className="hover:bg-muted/30">
                   <td className="whitespace-nowrap px-5 py-4 text-muted-foreground">{formatDateTime(log.createdAt)}</td>
                   <td className="px-5 py-4">
@@ -197,6 +200,7 @@ export function AuditLogPage() {
             {isLoading ? 'Loading audit events…' : error ?? 'No audit events match your filters yet.'}
           </div>
         )}
+        <Pagination page={page} pageSize={pageSize} totalItems={totalItems} totalPages={totalPages} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   )

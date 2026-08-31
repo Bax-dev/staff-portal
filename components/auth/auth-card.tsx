@@ -1,9 +1,11 @@
+import Image from 'next/image'
+
 export function AuthCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <div className="grid size-11 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">SMP</div>
+          <Image src="/NDBDA LOGO.jpeg" alt="NDBDA logo" width={44} height={44} className="size-11 shrink-0 rounded-full object-cover" />
           <div>
             <p className="font-semibold tracking-tight">SMP</p>
             <p className="text-xs text-muted-foreground">Staff Management Portal</p>

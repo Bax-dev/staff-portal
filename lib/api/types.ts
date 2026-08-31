@@ -4,6 +4,23 @@ import type { Staff } from '@/lib/staff-data'
 export type AppearanceTheme = 'light' | 'dark'
 export type AppearanceFontSize = 'small' | 'medium' | 'large' | 'xlarge'
 
+export type Screen =
+  | 'OVERVIEW'
+  | 'DIRECTORY'
+  | 'ARCHIVE'
+  | 'ORGANIZATION'
+  | 'DOCUMENTS'
+  | 'REPORTS'
+  | 'AUDIT_LOG'
+  | 'SETTINGS'
+
+export type ScreenPermission = {
+  screen: Screen
+  canView: boolean
+  canEdit: boolean
+  canDelete: boolean
+}
+
 export type AuthUser = {
   id: string
   email: string
@@ -13,6 +30,19 @@ export type AuthUser = {
   photo?: string | null
   theme?: AppearanceTheme
   fontSize?: AppearanceFontSize
+  permissions: ScreenPermission[]
+}
+
+export type StaffAccount = {
+  id: string
+  email: string
+  name: string
+  role: 'ADMINISTRATOR' | 'OFFICER'
+  staffId: string | null
+  staffName: string | null
+  isActive: boolean
+  permissions: ScreenPermission[]
+  createdAt: string
 }
 
 export type AuthSession = {
@@ -20,21 +50,26 @@ export type AuthSession = {
   user: AuthUser
 }
 
+export type DepartmentType = 'DIRECTORATE' | 'DEPARTMENT' | 'UNIT'
+
 export type DepartmentNode = {
   id: string
   name: string
+  type: DepartmentType
   children: Array<{
     id: string
     name: string
-    children: Array<{ id: string; name: string }>
+    type: DepartmentType
+    children: Array<{ id: string; name: string; type: DepartmentType }>
   }>
 }
 
 export type DepartmentListItem = {
   id: string
   name: string
+  type: DepartmentType
   parentId: string | null
-  children: Array<{ id: string; name: string }>
+  children: Array<{ id: string; name: string; type: DepartmentType }>
 }
 
 export type OverviewReport = {

@@ -1,17 +1,26 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronRight, ShieldCheck, X } from 'lucide-react'
 import { navItems } from '@/lib/staff-data'
+import { useAuth } from '@/lib/auth-context'
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname()
+  const { role, hasPermission } = useAuth()
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.adminOnly) return role === 'admin'
+    if (!item.screen) return true
+    return role === 'admin' || hasPermission(item.screen, 'view')
+  })
 
   return (
     <aside className={`${open ? 'fixed inset-y-0 left-0 z-50 flex' : 'hidden'} w-72 shrink-0 flex-col border-r bg-card lg:flex`}>
       <div className="flex h-20 items-center gap-3 border-b px-7">
-        <div className="grid size-9 place-items-center rounded-lg bg-primary text-xs text-primary-foreground font-bold">SMP</div>
+        <Image src="/NDBDA LOGO.jpeg" alt="NDBDA logo" width={36} height={36} className="size-9 shrink-0 rounded-full object-cover" />
         <div>
           <p className="font-semibold tracking-tight">SMP</p>
           <p className="text-xs text-muted-foreground">Staff Management Portal</p>
@@ -22,7 +31,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-4">
         <div data-tour="nav" className="flex flex-col gap-1">
-          {navItems.map(({ label, href, icon: Icon }) => (
+          {visibleNavItems.map(({ label, href, icon: Icon }) => (
             <Link
               key={label}
               href={href}

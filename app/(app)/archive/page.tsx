@@ -1,5 +1,10 @@
+import { PermissionGate } from '@/components/auth/permission-gate'
 import { ArchivePage } from '@/components/pages/archive'
 
 export default function Page() {
-  return <ArchivePage />
+  return (
+    <PermissionGate screen="ARCHIVE" capability="view">
+      <ArchivePage />
+    </PermissionGate>
+  )
 }

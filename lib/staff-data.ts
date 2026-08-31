@@ -1,4 +1,5 @@
-import { Archive, BarChart3, Building2, CircleHelp, FolderOpen, LayoutDashboard, ScrollText, Settings, Users, type LucideIcon } from 'lucide-react'
+import { Archive, BarChart3, Building2, CircleHelp, FolderOpen, KeyRound, LayoutDashboard, ScrollText, Settings, Users, type LucideIcon } from 'lucide-react'
+import type { Screen } from '@/lib/api/types'
 
 export type Staff = {
   id: string
@@ -36,17 +37,31 @@ export type Staff = {
 
 export type StaffFormValues = Omit<Staff, 'id' | 'archived' | 'archivedAt'>
 
-export const navItems: { label: string; href: string; icon: LucideIcon }[] = [
-  { label: 'Overview', href: '/', icon: LayoutDashboard },
-  { label: 'Staff directory', href: '/staff', icon: Users },
-  { label: 'Archive', href: '/archive', icon: Archive },
-  { label: 'Organization', href: '/organization', icon: Building2 },
-  { label: 'Documents', href: '/documents', icon: FolderOpen },
-  { label: 'Reports', href: '/reports', icon: BarChart3 },
-  { label: 'Audit log', href: '/audit-log', icon: ScrollText },
-  { label: 'Settings', href: '/settings', icon: Settings },
+export const navItems: { label: string; href: string; icon: LucideIcon; screen?: Screen; adminOnly?: boolean }[] = [
+  { label: 'Overview', href: '/', icon: LayoutDashboard, screen: 'OVERVIEW' },
+  { label: 'Staff directory', href: '/staff', icon: Users, screen: 'DIRECTORY' },
+  { label: 'Archive', href: '/archive', icon: Archive, screen: 'ARCHIVE' },
+  { label: 'Organization', href: '/organization', icon: Building2, screen: 'ORGANIZATION' },
+  { label: 'Documents', href: '/documents', icon: FolderOpen, screen: 'DOCUMENTS' },
+  { label: 'Reports', href: '/reports', icon: BarChart3, screen: 'REPORTS' },
+  { label: 'Audit log', href: '/audit-log', icon: ScrollText, screen: 'AUDIT_LOG' },
+  { label: 'Settings', href: '/settings', icon: Settings, screen: 'SETTINGS' },
+  { label: 'Staff access', href: '/staff-access', icon: KeyRound, adminOnly: true },
   { label: 'Help center', href: '/help', icon: CircleHelp },
 ]
+
+export const screenLabels: Record<Screen, string> = {
+  OVERVIEW: 'Overview',
+  DIRECTORY: 'Staff directory',
+  ARCHIVE: 'Archive',
+  ORGANIZATION: 'Organization',
+  DOCUMENTS: 'Documents',
+  REPORTS: 'Reports',
+  AUDIT_LOG: 'Audit log',
+  SETTINGS: 'Settings',
+}
+
+export const allScreens: Screen[] = Object.keys(screenLabels) as Screen[]
 
 export function initials(name: string) {
   return name.split(' ').map((part) => part[0]).slice(0, 2).join('')

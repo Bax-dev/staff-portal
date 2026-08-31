@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
-import { toastError } from '@/components/ui/toast'
+import { toast, toastError } from '@/components/ui/toast'
 import { departmentApi, documentApi, inferFileMimeType, settingsApi, staffApi, uploadFileToS3 } from '@/lib/api'
 import type { DepartmentNode } from '@/lib/api/types'
 import { escapeCsv, flattenDepartmentNames, spreadsheetField, type Staff, type StaffFormValues } from '@/lib/staff-data'
@@ -35,6 +35,7 @@ type StaffContextValue = {
   requestDelete: (person: Staff) => void
   cancelDelete: () => void
   confirmDelete: () => Promise<void>
+  removeManyStaff: (ids: string[]) => Promise<void>
   archivingStaff: Staff | null
   requestArchive: (person: Staff) => void
   cancelArchive: () => void
@@ -163,28 +164,37 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
         const workbook = XLSX.read(event.target?.result, { type: 'array', cellDates: true })
         const sheet = workbook.Sheets[workbook.SheetNames[0]]
         const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet)
-        const imported: StaffFormValues[] = rows.map((row, index) => {
-          const status = spreadsheetField(row, ['Status', 'status'], 'Active')
-          return {
-            name: spreadsheetField(row, ['Name', 'name'], 'Unnamed staff'),
-            title: spreadsheetField(row, ['Title', 'title'], 'Not specified'),
-            staffId: spreadsheetField(row, ['Staff ID', 'staffId'], `IMP-${index + 1}`),
-            designation: spreadsheetField(row, ['Designation', 'designation'], 'Staff'),
-            department: spreadsheetField(row, ['Department', 'department'], 'Planning and Design'),
-            email: spreadsheetField(row, ['Email', 'email']),
-            phone: spreadsheetField(row, ['Phone', 'phone']),
-            gender: spreadsheetField(row, ['Gender', 'gender'], 'Not specified'),
-            status: status === 'On leave' || status === 'Probation' ? status : 'Active',
-            grade: spreadsheetField(row, ['Grade', 'grade'], 'Not specified'),
-            cadre: spreadsheetField(row, ['Cadre', 'cadre'], 'Not specified'),
-            appointmentDate: spreadsheetField(row, ['Appointment date', 'appointmentDate'], '01 Jan 2020'),
-            location: spreadsheetField(row, ['Location', 'location'], 'Not specified'),
-            nationality: spreadsheetField(row, ['Nationality', 'nationality'], 'Nigerian'),
-            dob: spreadsheetField(row, ['DOB', 'dob']),
-            maritalStatus: spreadsheetField(row, ['Marital status', 'maritalStatus'], 'Not specified'),
-            ...emptyExtras(),
-          }
-        })
+        const skipped = rows.filter((row) => !spreadsheetField(row, ['Name', 'name']).trim()).length
+        const imported: StaffFormValues[] = rows
+          .filter((row) => spreadsheetField(row, ['Name', 'name']).trim())
+          .map((row, index) => {
+            const status = spreadsheetField(row, ['Status', 'status'], 'Active')
+            return {
+              name: spreadsheetField(row, ['Name', 'name']),
+              title: spreadsheetField(row, ['Title', 'title'], 'Not specified'),
+              staffId: spreadsheetField(row, ['Staff ID', 'staffId'], `IMP-${index + 1}`),
+              designation: spreadsheetField(row, ['Designation', 'designation'], 'Staff'),
+              department: spreadsheetField(row, ['Department', 'department'], 'Planning and Design'),
+              email: spreadsheetField(row, ['Email', 'email']),
+              phone: spreadsheetField(row, ['Phone', 'phone']),
+              gender: spreadsheetField(row, ['Gender', 'gender'], 'Not specified'),
+              status: status === 'On leave' || status === 'Probation' ? status : 'Active',
+              grade: spreadsheetField(row, ['Grade', 'grade'], 'Not specified'),
+              cadre: spreadsheetField(row, ['Cadre', 'cadre'], 'Not specified'),
+              appointmentDate: spreadsheetField(row, ['Appointment date', 'appointmentDate'], '01 Jan 2020'),
+              location: spreadsheetField(row, ['Location', 'location'], 'Not specified'),
+              nationality: spreadsheetField(row, ['Nationality', 'nationality'], 'Nigerian'),
+              dob: spreadsheetField(row, ['DOB', 'dob']),
+              maritalStatus: spreadsheetField(row, ['Marital status', 'maritalStatus'], 'Not specified'),
+              ...emptyExtras(),
+            }
+          })
+
+        if (imported.length === 0) {
+          toastError(new Error('Every row in this file is missing a Name. Nothing was imported.'), 'Could not import this file.')
+          return
+        }
+
         await staffApi.importRows(imported)
         try {
           const mimeType = inferFileMimeType(file)
@@ -203,6 +213,14 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
           })
         } catch {
           // Staff rows are already saved; archiving the spreadsheet is optional.
+        }
+        if (skipped > 0) {
+          toast.add({
+            type: 'warning',
+            title: `Imported ${imported.length} record${imported.length === 1 ? '' : 's'}, skipped ${skipped} row${skipped === 1 ? '' : 's'} without a Name.`,
+          })
+        } else {
+          toast.add({ type: 'success', title: `Imported ${imported.length} record${imported.length === 1 ? '' : 's'}.` })
         }
         await refresh()
       } catch (err: unknown) {
@@ -245,6 +263,11 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
     closeForm()
     await refresh()
     router.push('/staff')
+  }
+
+  async function removeManyStaff(ids: string[]) {
+    await staffApi.removeMany(ids)
+    await refresh()
   }
 
   function requestDelete(person: Staff) {
@@ -325,6 +348,7 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
     requestDelete,
     cancelDelete,
     confirmDelete,
+    removeManyStaff,
     archivingStaff,
     requestArchive,
     cancelArchive,

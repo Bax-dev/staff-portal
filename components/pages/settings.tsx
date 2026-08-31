@@ -14,7 +14,8 @@ import { useStaff } from '@/lib/staff-context'
 
 export function Settings() {
   const { refresh, dataVersion } = useStaff()
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, hasPermission } = useAuth()
+  const canEditWorkspace = hasPermission('SETTINGS', 'edit')
   const { theme, fontSize, setTheme, setFontSize } = useAppearance()
   const photoInputRef = useRef<HTMLInputElement>(null)
 
@@ -241,31 +242,33 @@ export function Settings() {
         </div>
       </section>
 
-      <section className="max-w-3xl rounded-xl border bg-card">
-        <div className="flex items-center gap-3 border-b p-5">
-          <SettingsIcon className="size-5 text-primary" />
-          <div>
-            <h3 className="font-semibold">Workspace</h3>
-            <p className="text-xs text-muted-foreground">These preferences apply to this workspace.</p>
+      {canEditWorkspace && (
+        <section className="max-w-3xl rounded-xl border bg-card">
+          <div className="flex items-center gap-3 border-b p-5">
+            <SettingsIcon className="size-5 text-primary" />
+            <div>
+              <h3 className="font-semibold">Workspace</h3>
+              <p className="text-xs text-muted-foreground">These preferences apply to this workspace.</p>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col gap-5 p-5">
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            <FieldLabel required>Organization name</FieldLabel>
-            <input required value={organizationName} onChange={(event) => setOrganizationName(event.target.value)} className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-primary" />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            <FieldLabel required>Default export format</FieldLabel>
-            <select value={defaultExportFormat} onChange={(event) => setDefaultExportFormat(event.target.value === 'CSV' ? 'CSV' : 'XLSX')} className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-primary">
-              <option>CSV</option>
-              <option>XLSX</option>
-            </select>
-          </label>
-          <Button className="w-fit" onClick={handleSaveWorkspace} disabled={workspaceSaving}>
-            {workspaceSaving ? 'Saving…' : 'Save workspace'}
-          </Button>
-        </div>
-      </section>
+          <div className="flex flex-col gap-5 p-5">
+            <label className="flex flex-col gap-2 text-sm font-medium">
+              <FieldLabel required>Organization name</FieldLabel>
+              <input required value={organizationName} onChange={(event) => setOrganizationName(event.target.value)} className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-primary" />
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-medium">
+              <FieldLabel required>Default export format</FieldLabel>
+              <select value={defaultExportFormat} onChange={(event) => setDefaultExportFormat(event.target.value === 'CSV' ? 'CSV' : 'XLSX')} className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus:ring-2 focus:ring-primary">
+                <option>CSV</option>
+                <option>XLSX</option>
+              </select>
+            </label>
+            <Button className="w-fit" onClick={handleSaveWorkspace} disabled={workspaceSaving}>
+              {workspaceSaving ? 'Saving…' : 'Save workspace'}
+            </Button>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

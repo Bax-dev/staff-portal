@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { ArchiveRestore, Eye, Search, Trash2 } from 'lucide-react'
+import { Pagination } from '@/components/ui/pagination'
 import { StaffAvatar } from '@/components/staff/staff-avatar'
 import { staffApi } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
 import { useStaff } from '@/lib/staff-context'
 import type { Staff } from '@/lib/staff-data'
+import { usePagination } from '@/lib/use-pagination'
 
 function formatArchivedAt(value?: string | null) {
   if (!value) return 'Archived'
@@ -18,10 +21,14 @@ function formatArchivedAt(value?: string | null) {
 
 export function ArchivePage() {
   const { selectStaff, requestUnarchive, requestDelete, dataVersion } = useStaff()
+  const { hasPermission } = useAuth()
+  const canEdit = hasPermission('ARCHIVE', 'edit')
+  const canDelete = hasPermission('ARCHIVE', 'delete')
   const [records, setRecords] = useState<Staff[]>([])
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { pageItems, page, pageSize, setPage, setPageSize, totalPages, totalItems } = usePagination(records)
 
   useEffect(() => {
     let cancelled = false
@@ -81,7 +88,7 @@ export function ArchivePage() {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {records.map((person) => (
+              {pageItems.map((person) => (
                 <tr key={person.id} className="hover:bg-muted/30">
                   <td className="px-5 py-4">
                     <button onClick={() => selectStaff(person)} className="flex items-center gap-3 text-left">
@@ -102,12 +109,16 @@ export function ArchivePage() {
                       <button aria-label={`View ${person.name}`} onClick={() => selectStaff(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
                         <Eye className="size-4" />
                       </button>
-                      <button aria-label={`Restore ${person.name}`} onClick={() => requestUnarchive(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
-                        <ArchiveRestore className="size-4" />
-                      </button>
-                      <button aria-label={`Remove ${person.name}`} onClick={() => requestDelete(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                        <Trash2 className="size-4" />
-                      </button>
+                      {canEdit && (
+                        <button aria-label={`Restore ${person.name}`} onClick={() => requestUnarchive(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
+                          <ArchiveRestore className="size-4" />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button aria-label={`Remove ${person.name}`} onClick={() => requestDelete(person)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                          <Trash2 className="size-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -120,6 +131,7 @@ export function ArchivePage() {
             {isLoading ? 'Loading archived records…' : error ?? 'No archived staff records yet.'}
           </div>
         )}
+        <Pagination page={page} pageSize={pageSize} totalItems={totalItems} totalPages={totalPages} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   )
